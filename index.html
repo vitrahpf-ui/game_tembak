@@ -2000,7 +2000,7 @@ function tembak() {
 }
 
 /* ================= FISIKA ================= */
-const R = 0.45, TINGGI = 2.8, LAJU = 9, LARI = 15, GRAVITASI = 32, LOMPAT = 12;
+const R = 0.45, TINGGI = 2.8, LAJU = 9, LARI = 15, GRAVITASI = 32, LOMPAT = 15;
 function tabrak(x, y, z) {
   for (const b of KOTAK) if (x + R > b.minX && x - R < b.maxX && z + R > b.minZ && z - R < b.maxZ && y + TINGGI > b.minY && y < b.maxY) return b;
   return null;
