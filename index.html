@@ -696,7 +696,35 @@ function teksturJendela(dasar, nyala) {
 
 /* ================= MAP ================= */
 let mapGroup = null, mapAktif = 'taman';
-const KOTAK = [], blokMesh = [], mapAnim = [];
+const KOTAK = [], blokMesh = [], mapAnim = [], BUKIT = [];
+// Tinggi tanah di titik (x, z): 0 kecuali di atas bukit
+function tanahY(x, z) {
+  let y = 0;
+  for (const b of BUKIT) {
+    const dx = x - b.x, dz = z - b.z;
+    if (Math.abs(dx) > b.maks || Math.abs(dz) > b.maks) continue;
+    const lx = dx * b.cos + dz * b.sin, lz = -dx * b.sin + dz * b.cos;
+    const d = Math.hypot(lx / b.rx, lz / b.rz);
+    if (d < 1) y = Math.max(y, b.h * (0.5 + 0.5 * Math.cos(Math.PI * d)));
+  }
+  return y;
+}
+// Bukit padat yang bisa dinaiki: bentuk mesh = bentuk tabrakan
+function bukit(x, z, rx, rz, h, rot, warna, padat = true) {
+  const b = { x, z, rx, rz, h, cos: Math.cos(rot), sin: Math.sin(rot), maks: Math.max(rx, rz) };
+  const geo = new THREE.PlaneGeometry(rx * 2, rz * 2, 28, 28); geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const lx = pos.getX(i), lz = pos.getZ(i), d = Math.hypot(lx / rx, lz / rz);
+    pos.setY(i, d < 1 ? h * (0.5 + 0.5 * Math.cos(Math.PI * d)) : -0.02);
+  }
+  geo.computeVertexNormals();
+  const m = new THREE.Mesh(geo, mat(warna, 0.95));
+  m.position.set(x, 0.01, z); m.rotation.y = -rot; m.receiveShadow = true; m.castShadow = padat;
+  mapGroup.add(m);
+  if (padat) { BUKIT.push(b); blokMesh.push(m); }
+  return m;
+}
 let SPAWN_MAP = [];
 const matCache = {};
 const mat = (warna, rough = 0.6) => matCache[warna + rough] || (matCache[warna + rough] = new THREE.MeshStandardMaterial({ color: warna, roughness: rough }));
@@ -821,7 +849,7 @@ const MAPS = {
     for (let i = 0; i < 60; i++) { const a = Math.random() * 6.28, r = 7.5 + Math.random() * 3; hias(-26 + Math.cos(a) * r, 0.2, 24 + Math.sin(a) * r, 0.35, 0.4, 0.35, bunga[i % 5], null, false); }
     for (let i = 0; i < 50; i++) { const x = Math.random() * 110 - 55, z = Math.random() * 110 - 55; if (Math.hypot(x, z) > 10) hias(x, 0.15, z, 0.3, 0.3, 0.3, bunga[i % 5], null, false); }
     // Pemandangan luar
-    for (let i = 0; i < 26; i++) { const a = (i / 26) * Math.PI * 2, r = 85 + Math.random() * 40; const s = 12 + Math.random() * 18; const bk = new THREE.Mesh(new THREE.SphereGeometry(s, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(i % 2 ? '#4fa63a' : '#5cb846', 0.9)); bk.position.set(Math.cos(a) * r, -1, Math.sin(a) * r); bk.scale.y = 0.6; mapGroup.add(bk); }
+    for (let i = 0; i < 26; i++) { const a = (i / 26) * Math.PI * 2, s = 12 + Math.random() * 18, r = 64 / Math.max(Math.abs(Math.cos(a)), Math.abs(Math.sin(a))) + s + Math.random() * 30; const bk = new THREE.Mesh(new THREE.SphereGeometry(s, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(i % 2 ? '#4fa63a' : '#5cb846', 0.9)); bk.position.set(Math.cos(a) * r, -1, Math.sin(a) * r); bk.scale.y = 0.6; mapGroup.add(bk); }
     for (let i = 0; i < 30; i++) { const a = Math.random() * 6.28, r = 66 + Math.random() * 14; pohon(Math.cos(a) * r, Math.sin(a) * r, 1 + Math.random() * 0.6, false); }
     awan(16); piringan('#fff6c8', [120, 150, 80], 60);
   } },
@@ -857,7 +885,10 @@ const MAPS = {
     }
     for (const [x, z] of [[-14, 10], [14, -10], [-48, 6], [48, -6]]) { kotak(x, z, 2.2, 1.2, 1.8, '#a8865c'); hias(x + 1.2, 0.4, z + 0.6, 1, 0.8, 1, '#9a7a52'); }
     // Pemandangan luar: bukit pasir & piramida jauh
-    for (let i = 0; i < 24; i++) { const a = (i / 24) * Math.PI * 2, r = 85 + Math.random() * 50, s = 16 + Math.random() * 20; const d = new THREE.Mesh(new THREE.SphereGeometry(s, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(i % 2 ? '#e2b46c' : '#d9a85e', 0.95)); d.position.set(Math.cos(a) * r, -1, Math.sin(a) * r); d.scale.set(1.6, 0.35, 1); d.rotation.y = a; mapGroup.add(d); }
+    // Bukit pasir di dalam arena (padat, bisa dinaiki)
+    for (const [x, z, rx, rz, h, rot] of [[-40, 40, 10, 7, 3.2, 0.3], [44, -47, 9, 6, 2.8, -0.4], [-47, -48, 8, 6, 3, 0.5], [-26, 47, 8, 5, 2.4, 0], [52, 18, 6, 9, 2.6, 0], [-14, -40, 6, 4, 1.8, 0.8]]) bukit(x, z, rx, rz, h, rot, '#e2b46c');
+    // Bukit pasir di luar pagar (pemandangan, tidak masuk arena)
+    for (let i = 0; i < 24; i++) { const a = (i / 24) * Math.PI * 2, rx = 18 + Math.random() * 14, rz = 10 + Math.random() * 8, tepi = 63 / Math.max(Math.abs(Math.cos(a)), Math.abs(Math.sin(a))); const r = tepi + rx + Math.random() * 25; bukit(Math.cos(a) * r, Math.sin(a) * r, rx, rz, 5 + Math.random() * 7, a, i % 2 ? '#e2b46c' : '#d9a85e', false); }
     for (const [x, z, s] of [[-140, -60, 40], [130, -110, 55], [60, 150, 35]]) { for (let i = 0; i < 8; i++) { const w = s - (s / 8) * i; hias(x, i * (s / 16) + s / 32, z, w, s / 16, w, i % 2 ? '#c9965a' : '#d6a466', null, false); } }
     piringan('#ffb15a', [-180, 55, 80], 110); piringan('#fff1c0', [-180, 55, 80], 40);
   } },
@@ -919,7 +950,7 @@ const MAPS = {
 function bangunMap(id) {
   if (!MAPS[id]) id = 'taman';
   if (mapGroup) { scene.remove(mapGroup); mapGroup.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); }
-  KOTAK.length = 0; blokMesh.length = 0; mapAnim.length = 0;
+  KOTAK.length = 0; blokMesh.length = 0; mapAnim.length = 0; BUKIT.length = 0;
   mapGroup = new THREE.Group(); scene.add(mapGroup);
   mapAktif = id; SPAWN_MAP = MAPS[id].spawn;
   MAPS[id].bangun();
@@ -1486,7 +1517,7 @@ function mulaiLatihan() {
   mulaiGame();
   NAMA_BOT.forEach((n, i) => {
     const [x, z] = spawnAman();
-    const o = tambahPemain('bot' + i, n, WARNA[i + 1], { x, y: 0, z, ry: 0, av: acakAv() });
+    const o = tambahPemain('bot' + i, n, WARNA[i + 1], { x, y: tanahY(x, z), z, ry: 0, av: acakAv() });
     Object.assign(o, { bot: true, hp: 100, arah: Math.random() * 6.28, gantiArah: 0, tembakT: 2 + Math.random() * 3 });
   });
 }
@@ -1497,7 +1528,7 @@ function updateBot(dt) {
     o.gantiArah -= dt;
     if (o.gantiArah <= 0) { o.arah = Math.random() * Math.PI * 2; o.gantiArah = 1 + Math.random() * 2.5; }
     const nx = o.target.x - Math.sin(o.arah) * 5 * dt, nz = o.target.z - Math.cos(o.arah) * 5 * dt;
-    if (!tabrak(nx, 0, nz) && Math.abs(nx) < 58 && Math.abs(nz) < 58) { o.target.x = nx; o.target.z = nz; } else o.gantiArah = 0;
+    if (!tabrak(nx, 0, nz) && Math.abs(nx) < 58 && Math.abs(nz) < 58) { o.target.x = nx; o.target.z = nz; o.target.y = tanahY(nx, nz); } else o.gantiArah = 0;
     o.ry = o.arah;
     o.tembakT -= dt;
     const jarak = o.target.distanceTo(aku.pos);
@@ -1527,7 +1558,7 @@ function kenaBot(o, titik) {
     const s = sesi;
     setTimeout(() => {
       if (s !== sesi || !lain[o.id]) return;
-      const [x, z] = spawnAman(); o.target.set(x, 0, z); o.group.position.copy(o.target);
+      const [x, z] = spawnAman(); o.target.set(x, tanahY(x, z), z); o.group.position.copy(o.target);
       o.hp = 100; o.mati = false; posePingsan(o.group, false); gambarLabel(o.group.userData.label, o.nama, 100, o.warna);
     }, 3000);
   }
@@ -1551,7 +1582,7 @@ function spawnAman() {
 }
 function taruhAku() {
   const [x, z] = spawnAman();
-  aku.pos.set(x, 0, z); aku.velY = 0; aku.yaw = Math.atan2(x, z); aku.pitch = -0.05;
+  aku.pos.set(x, tanahY(x, z), z); aku.velY = 0; aku.yaw = Math.atan2(x, z); aku.pitch = -0.05;
   aku.hp = 100; aku.ammo = MAX_AMMO; aku.mati = false; aku.stamina = 100; aku.capek = false;
   if (aku.group) posePingsan(aku.group, false);
   $('layarMati').classList.add('hidden');
@@ -2008,7 +2039,9 @@ function updateAku(dt) {
   const ny = p.y + aku.velY * dt, b = tabrak(p.x, ny, p.z);
   if (b) { if (aku.velY <= 0) { p.y = b.maxY; aku.diTanah = true; } else aku.diTanah = false; aku.velY = 0; }
   else { p.y = ny; aku.diTanah = false; }
-  if (p.y <= 0) { p.y = 0; aku.velY = 0; aku.diTanah = true; }
+  const tanah = tanahY(p.x, p.z);
+  if (p.y <= tanah) { p.y = tanah; aku.velY = 0; aku.diTanah = true; }
+  else if (tanah > 0 && aku.velY <= 0 && p.y - tanah < 0.5 && !b) { p.y = tanah; aku.velY = 0; aku.diTanah = true; } // menempel saat turun bukit
   p.x = Math.max(-59, Math.min(59, p.x)); p.z = Math.max(-59, Math.min(59, p.z));
   aku.group.position.copy(p);
   if (aku.mati) aku.group.position.y += 0.25;
