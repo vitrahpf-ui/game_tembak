@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Blok Tembak Edu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --kuning:#ffd23f; --navy:#16213e; --hijau:#2ecc71; --biru:#3498db; --merah:#e74c3c; --oranye:#f39c12; --kaca:rgba(14,20,38,.58); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin:0; height:100%; overflow:hidden; background:#0f1730; font-family:'Fredoka', system-ui, sans-serif; color:#fff; user-select:none; -webkit-user-select:none; touch-action:none; }
+  canvas { display:block; }
+  .hidden { display:none !important; }
+  button { font-family:inherit; cursor:pointer; color:inherit; }
+
+  /* ---------- LOBBY ---------- */
+  #lobby { position:fixed; inset:0; overflow-y:auto; touch-action:pan-y; background:radial-gradient(ellipse at center, rgba(10,20,50,.15) 0%, rgba(8,14,34,.7) 100%); display:flex; justify-content:center; padding:24px 14px; }
+  .lobbyWrap { width:min(620px,100%); margin:auto; }
+  .brand { text-align:center; margin-bottom:14px; }
+  .logo { display:inline-block; font-weight:700; font-size:clamp(40px,8vw,64px); line-height:.95; color:var(--kuning); -webkit-text-stroke:3px var(--navy); text-shadow:0 6px 0 var(--navy), 0 12px 24px rgba(0,0,0,.35); transform:rotate(-3deg); letter-spacing:1px; }
+  .logo em { font-style:normal; color:#fff; }
+  .sub { margin-top:10px; display:inline-block; background:var(--merah); color:#fff; font-weight:700; padding:4px 14px; border-radius:999px; letter-spacing:3px; font-size:14px; box-shadow:0 3px 0 #a93226; }
+  .panel { background:#fff; color:#1f2937; border-radius:24px; padding:20px; box-shadow:0 10px 0 rgba(0,0,0,.18), 0 24px 60px rgba(0,0,0,.35); }
+  .panel label { display:block; font-size:13px; font-weight:600; color:#64748b; margin:14px 0 6px; }
+  .panel input { width:100%; padding:12px 14px; border:2px solid #e2e8f0; border-radius:12px; font:inherit; font-size:17px; outline:none; color:#111; background:#f8fafc; }
+  .panel input:focus { border-color:var(--biru); background:#fff; }
+  .rowNama { display:flex; gap:10px; align-items:flex-end; }
+  .rowNama > div { flex:1; }
+  .rowNama label { margin-top:0; }
+  .ikonL { width:50px; height:50px; border-radius:12px; border:2px solid #e2e8f0; background:#f8fafc; font-size:22px; }
+  .tabs { display:flex; background:#eef2f7; border-radius:14px; padding:4px; margin-top:16px; }
+  .tab { flex:1; border:0; background:transparent; padding:10px; border-radius:10px; font-size:16px; font-weight:700; color:#64748b; }
+  .tab.aktif { background:#fff; color:var(--navy); box-shadow:0 2px 6px rgba(0,0,0,.1); }
+  .mapGrid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .mapCard { position:relative; height:118px; border-radius:16px; border:0; overflow:hidden; text-align:left; padding:0; box-shadow:0 4px 0 rgba(0,0,0,.15); transition:transform .15s; }
+  .mapCard .em { position:absolute; top:10px; left:12px; font-size:30px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+  .mapCard .nm { position:absolute; left:0; right:0; bottom:0; padding:22px 10px 8px; background:linear-gradient(transparent, rgba(0,0,0,.65)); color:#fff; font-weight:700; font-size:15px; line-height:1.1; }
+  .mapCard .nm small { display:block; font-weight:500; font-size:11px; opacity:.85; margin-top:2px; }
+  .mapCard.aktif { outline:4px solid var(--kuning); outline-offset:2px; transform:translateY(-2px); }
+  .mapCard.aktif::after { content:'✓'; position:absolute; top:8px; right:10px; background:var(--kuning); color:var(--navy); width:24px; height:24px; border-radius:50%; display:grid; place-items:center; font-weight:700; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip2 { border:2px solid #e2e8f0; background:#f8fafc; color:#334155; border-radius:999px; padding:7px 12px; font-size:14px; font-weight:600; }
+  .chip2.aktif { background:var(--navy); border-color:var(--navy); color:#fff; }
+  .btn { display:block; width:100%; margin-top:16px; padding:14px; border:0; border-radius:14px; font-size:19px; font-weight:700; color:#fff; background:var(--hijau); box-shadow:0 5px 0 #1f9d55; letter-spacing:.5px; }
+  .btn:active { transform:translateY(4px); box-shadow:0 1px 0 #1f9d55; }
+  .btn.biru { background:var(--biru); box-shadow:0 5px 0 #1f6fa8; }
+  .btn.oranye { background:var(--oranye); box-shadow:0 5px 0 #b9770e; }
+  .btn.merah { background:var(--merah); box-shadow:0 5px 0 #a93226; }
+  .btn.abu { background:#94a3b8; box-shadow:0 5px 0 #64748b; }
+  .btn.tipis { font-size:15px; padding:11px; margin-top:12px; }
+  #kodeInput { text-transform:uppercase; letter-spacing:10px; text-align:center; font-weight:700; font-size:30px; padding:14px; }
+  .info { font-size:13px; color:#64748b; margin:10px 0 0; text-align:center; }
+  #error { color:var(--merah); text-align:center; min-height:20px; margin-top:10px; font-size:14px; font-weight:600; }
+  #statusNet { text-align:center; font-size:13px; color:#94a3b8; }
+  #statusNet.ok { color:#1f9d55; }
+  .kontrolInfo { margin-top:14px; text-align:center; font-size:13px; line-height:1.8; color:#dbe4ff; text-shadow:0 1px 2px rgba(0,0,0,.6); }
+  .kontrolInfo b { background:rgba(255,255,255,.18); border-radius:5px; padding:1px 6px; }
+
+  /* ---------- HUD ---------- */
+  .kaca { background:var(--kaca); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.14); border-radius:14px; }
+  #topBar { position:fixed; top:10px; left:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; max-width:calc(100% - 270px); z-index:5; }
+  .ikonBtn { width:44px; height:44px; border-radius:12px; font-size:20px; display:grid; place-items:center; border:1px solid rgba(255,255,255,.18); background:var(--kaca); backdrop-filter:blur(8px); }
+  .ikonBtn:active { transform:scale(.94); }
+  .ikonBtn.mati { opacity:.45; }
+  #btnHome { background:var(--merah); border-color:#ff8a7d; box-shadow:0 3px 0 #a93226; }
+  .roomChip { display:flex; align-items:center; gap:8px; padding:6px 8px 6px 12px; height:44px; }
+  .roomChip .lbl { font-size:11px; opacity:.7; letter-spacing:2px; }
+  .roomChip b { color:var(--kuning); font-size:20px; letter-spacing:3px; }
+  .mini { border:0; background:rgba(255,255,255,.18); border-radius:8px; padding:6px 10px; font-size:13px; font-weight:600; }
+  #infoChip { padding:0 12px; height:44px; display:flex; align-items:center; gap:6px; font-size:14px; white-space:nowrap; }
+  #papanSkor { position:fixed; top:10px; right:10px; width:250px; padding:10px 12px; z-index:5; }
+  #papanSkor .judul { font-size:12px; opacity:.8; margin-bottom:6px; display:flex; justify-content:space-between; }
+  .baris { display:flex; align-items:center; gap:8px; padding:4px 6px; font-size:15px; border-radius:8px; }
+  .baris.aku { background:rgba(255,210,63,.18); }
+  .baris .pos { width:18px; text-align:center; opacity:.7; font-size:13px; }
+  .baris .dot { width:12px; height:12px; border-radius:4px; flex:none; box-shadow:0 0 0 2px rgba(255,255,255,.3); }
+  .baris .nm { flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .baris b { min-width:20px; text-align:right; }
+  .baris small { opacity:.7; min-width:30px; text-align:right; }
+  #feed { position:fixed; top:64px; left:10px; display:flex; flex-direction:column; gap:5px; z-index:4; }
+  #feed div { padding:5px 12px; font-size:14px; animation:masuk .25s ease-out; }
+  @keyframes masuk { from { transform:translateX(-20px); opacity:0; } }
+  #tunggu { position:fixed; top:64px; left:50%; transform:translateX(-50%); padding:8px 16px; font-size:15px; text-align:center; max-width:90vw; z-index:4; }
+
+  #crosshair { position:fixed; left:50%; top:50%; width:0; height:0; pointer-events:none; --g:6px; }
+  #crosshair span { position:absolute; background:#fff; box-shadow:0 0 0 1.5px rgba(0,0,0,.55); border-radius:2px; transition:transform .08s; }
+  #crosshair span:nth-child(1) { width:2px; height:9px; left:-1px; top:calc(-9px - var(--g)); }
+  #crosshair span:nth-child(2) { width:2px; height:9px; left:-1px; top:var(--g); }
+  #crosshair span:nth-child(3) { height:2px; width:9px; top:-1px; left:calc(-9px - var(--g)); }
+  #crosshair span:nth-child(4) { height:2px; width:9px; top:-1px; left:var(--g); }
+  #crosshair i { position:absolute; width:4px; height:4px; left:-2px; top:-2px; background:var(--kuning); border-radius:50%; box-shadow:0 0 0 1px rgba(0,0,0,.5); }
+  #crosshair.buka span:nth-child(1) { transform:translateY(-5px); } #crosshair.buka span:nth-child(2) { transform:translateY(5px); }
+  #crosshair.buka span:nth-child(3) { transform:translateX(-5px); } #crosshair.buka span:nth-child(4) { transform:translateX(5px); }
+  #hitmark { position:fixed; left:50%; top:50%; width:34px; height:34px; transform:translate(-50%,-50%) rotate(45deg) scale(.6); opacity:0; pointer-events:none; transition:opacity .12s, transform .12s; }
+  #hitmark::before, #hitmark::after { content:''; position:absolute; background:#ff3b3b; box-shadow:0 0 6px #ff3b3b; }
+  #hitmark::before { left:16px; top:0; width:3px; height:34px; } #hitmark::after { top:16px; left:0; height:3px; width:34px; }
+  #hitmark.on { opacity:1; transform:translate(-50%,-50%) rotate(45deg) scale(1); }
+
+  #bawah { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); display:flex; gap:12px; align-items:flex-end; z-index:4; }
+  .bars { width:280px; padding:8px 10px; }
+  .barRow { display:flex; align-items:center; gap:8px; }
+  .barRow + .barRow { margin-top:6px; }
+  .barIkon { width:20px; text-align:center; font-size:15px; }
+  #hpBar { position:relative; flex:1; height:22px; background:rgba(0,0,0,.45); border-radius:11px; overflow:hidden; }
+  #hpIsi { height:100%; width:100%; background:linear-gradient(#6ff59a,#21b35b); transition:width .15s; border-radius:11px; }
+  #hpTeks { position:absolute; inset:0; text-align:center; line-height:22px; font-weight:700; font-size:14px; text-shadow:0 1px 2px #000; }
+  #staminaBar { flex:1; height:8px; background:rgba(0,0,0,.45); border-radius:4px; overflow:hidden; }
+  #staminaIsi { height:100%; width:100%; background:linear-gradient(90deg,#ffd23f,#ff9f1a); }
+  #staminaIsi.capek { background:#9ca3af; }
+  #ammoBox { padding:8px 12px; text-align:center; min-width:150px; }
+  #ammoAngka { font-size:24px; font-weight:700; line-height:1; }
+  #ammoAngka small { font-size:14px; opacity:.7; }
+  #pips { display:flex; gap:3px; justify-content:center; margin-top:6px; }
+  #pips i { width:9px; height:14px; border-radius:3px; background:linear-gradient(#ffe27a,#f0a500); }
+  #pips i.kosong { background:rgba(255,255,255,.18); }
+  #ammoBox.habis { animation:kedip .6s infinite; border-color:#ff5b5b; }
+  #ammoBox .tips { font-size:11px; color:#ffb3b3; margin-top:4px; }
+  @keyframes kedip { 50% { box-shadow:0 0 0 3px rgba(255,80,80,.6); } }
+  #petunjuk { position:fixed; bottom:118px; left:50%; transform:translateX(-50%); font-size:16px; transition:opacity .3s; opacity:0; white-space:nowrap; padding:7px 14px; pointer-events:none; z-index:4; }
+  #flash { position:fixed; inset:0; background:radial-gradient(transparent 45%, rgba(255,0,0,.55)); opacity:0; transition:opacity .25s; pointer-events:none; }
+  #shortcut { position:fixed; left:10px; bottom:16px; font-size:12px; opacity:.85; padding:6px 10px; line-height:1.6; }
+  #shortcut b { background:rgba(255,255,255,.18); border-radius:4px; padding:0 5px; }
+
+  /* ---------- MOBILE ---------- */
+  #mobile { position:fixed; inset:0; pointer-events:none; z-index:3; }
+  #lookZone { position:absolute; right:0; top:0; width:58%; height:100%; pointer-events:auto; touch-action:none; }
+  #joyZone { position:absolute; left:0; bottom:0; width:42%; height:62%; pointer-events:auto; touch-action:none; }
+  #joyBase { position:absolute; left:34px; bottom:34px; width:136px; height:136px; border-radius:50%; background:rgba(255,255,255,.12); border:2px solid rgba(255,255,255,.35); backdrop-filter:blur(4px); }
+  #joyKnob { position:absolute; left:50%; top:50%; width:60px; height:60px; margin:-30px 0 0 -30px; border-radius:50%; background:rgba(255,255,255,.75); box-shadow:0 4px 12px rgba(0,0,0,.35); }
+  .mBtn { position:absolute; pointer-events:auto; touch-action:none; border-radius:50%; border:2px solid rgba(255,255,255,.5); display:grid; place-items:center; font-size:24px; font-weight:700; color:#fff; backdrop-filter:blur(4px); box-shadow:0 4px 0 rgba(0,0,0,.25); }
+  .mBtn span { position:absolute; bottom:-18px; font-size:11px; font-weight:600; text-shadow:0 1px 2px #000; white-space:nowrap; }
+  .mBtn.tekan { transform:scale(.92); filter:brightness(1.3); }
+  #mbTembak { right:28px; bottom:40px; width:92px; height:92px; font-size:36px; background:rgba(231,76,60,.75); }
+  #mbLompat { right:136px; bottom:28px; width:66px; height:66px; background:rgba(52,152,219,.7); }
+  #mbSprint { right:146px; bottom:116px; width:62px; height:62px; background:rgba(243,156,18,.7); }
+  #mbSprint.aktif { background:rgba(255,210,63,.95); color:var(--navy); }
+  #mbIsi { right:40px; bottom:156px; width:62px; height:62px; background:rgba(46,204,113,.75); }
+  #putar { position:fixed; inset:0; background:rgba(10,15,35,.92); display:none; align-items:center; justify-content:center; text-align:center; z-index:50; font-size:20px; padding:30px; }
+  #putar div { font-size:64px; margin-bottom:12px; animation:putar 1.6s ease-in-out infinite; }
+  @keyframes putar { 50% { transform:rotate(90deg); } }
+  @media (orientation: portrait) { body.mobile.main #putar { display:flex; } }
+  body.mobile #shortcut, body.mobile #klikMain { display:none !important; }
+  body.mobile #papanSkor { width:180px; padding:6px 8px; }
+  body.mobile .baris { font-size:12px; padding:2px 4px; }
+  body.mobile #papanSkor .judul { font-size:10px; }
+  body.mobile #topBar { max-width:calc(100% - 200px); gap:6px; }
+  body.mobile .ikonBtn { width:38px; height:38px; font-size:17px; }
+  body.mobile .roomChip { height:38px; } body.mobile .roomChip b { font-size:16px; }
+  body.mobile #infoChip { display:none; }
+  body.mobile #bawah { bottom:8px; gap:8px; }
+  body.mobile .bars { width:200px; padding:5px 8px; }
+  body.mobile #hpBar { height:16px; } body.mobile #hpTeks { line-height:16px; font-size:11px; }
+  body.mobile #ammoBox { min-width:110px; padding:5px 8px; } body.mobile #ammoAngka { font-size:18px; }
+  body.mobile #pips i { width:6px; height:10px; }
+  body.mobile #feed { top:54px; } body.mobile #feed div { font-size:12px; padding:3px 8px; }
+  body.mobile #petunjuk { bottom:80px; font-size:13px; }
+
+  /* ---------- OVERLAY ---------- */
+  .overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; z-index:20; }
+  #klikMain { background:rgba(8,12,30,.45); cursor:pointer; }
+  #klikMain .isi { padding:22px 34px; }
+  #klikMain .besar { font-size:28px; font-weight:700; }
+  #klikMain small { display:block; font-size:14px; opacity:.85; margin-top:6px; }
+  #layarMati { background:radial-gradient(transparent 30%, rgba(140,0,0,.55)); pointer-events:none; flex-direction:column; }
+  #layarMati .t1 { font-size:34px; font-weight:700; text-shadow:0 3px 8px #000; }
+  #layarMati .t2 { font-size:16px; margin-top:6px; opacity:.9; }
+  #layarMenang { background:rgba(8,12,30,.6); flex-direction:column; pointer-events:none; }
+  #layarMenang .t1 { font-size:clamp(34px,6vw,56px); font-weight:700; color:var(--kuning); -webkit-text-stroke:2px var(--navy); text-shadow:0 5px 0 var(--navy); animation:pop .5s; }
+  #layarMenang .t2 { font-size:17px; margin-top:12px; }
+  @keyframes pop { from { transform:scale(.3); } 70% { transform:scale(1.1); } }
+
+  .kartu { background:#fff; color:#1f2937; width:min(540px,92vw); border-radius:22px; padding:22px; box-shadow:0 10px 0 rgba(0,0,0,.2); text-align:left; }
+  #kuis { background:rgba(8,14,40,.55); }
+  #kuis .kartu { box-shadow:0 10px 0 var(--oranye); }
+  .kuisHead { display:flex; align-items:center; gap:10px; }
+  .kuisHead .tag { background:#fff3d6; color:#b86e00; border-radius:8px; padding:3px 10px; font-size:13px; font-weight:700; }
+  .kuisHead .timer { margin-left:auto; font-size:13px; color:#94a3b8; }
+  #kuisTeks { font-size:clamp(19px,3.4vw,25px); font-weight:700; margin:12px 0 16px; }
+  #kuisPilihan { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  #kuisPilihan button { border:0; border-radius:12px; padding:14px 12px; font-size:17px; font-weight:700; color:#fff; text-align:left; min-height:56px; }
+  #kuisPilihan button:nth-child(1) { background:#e74c3c; box-shadow:0 4px 0 #a93226; }
+  #kuisPilihan button:nth-child(2) { background:#3498db; box-shadow:0 4px 0 #1f6fa8; }
+  #kuisPilihan button:nth-child(3) { background:#f1a90f; box-shadow:0 4px 0 #b37a00; }
+  #kuisPilihan button:nth-child(4) { background:#2ecc71; box-shadow:0 4px 0 #1f9d55; }
+  #kuisPilihan button:disabled { opacity:.45; }
+  #kuisPilihan button.benar { opacity:1; outline:4px solid #16a34a; }
+  #kuisHasil { margin-top:14px; font-size:15px; min-height:22px; color:#334155; }
+  #kuisHasil .ok { color:#16a34a; font-weight:700; font-size:17px; }
+  #kuisHasil .no { color:#dc2626; font-weight:700; font-size:17px; }
+  .kecil { font-size:12px; color:#94a3b8; margin-top:12px; }
+  #konfirmasi { background:rgba(8,12,30,.6); z-index:30; }
+  #konfirmasi .kartu { text-align:center; width:min(400px,90vw); }
+  #konfirmasi .em { font-size:46px; }
+  #konfirmasi h3 { margin:6px 0; font-size:22px; }
+  #konfirmasi p { color:#64748b; margin:0 0 4px; }
+  .duaBtn { display:flex; gap:10px; } .duaBtn .btn { flex:1; }
+</style>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }</script>
+</head>
+<body>
+
+<div id="lobby">
+  <div class="lobbyWrap">
+    <div class="brand"><div class="logo">BLOK<br><em>TEMBAK</em></div><br><span class="sub">EDU · MABAR</span></div>
+    <div class="panel">
+      <div class="rowNama">
+        <div><label>Nama kamu</label><input id="namaInput" maxlength="14" placeholder="Misal: Fulan"></div>
+        <button class="ikonL" id="btnSuaraLobby" title="Musik">🎵</button>
+      </div>
+      <div class="tabs"><button class="tab aktif" data-tab="buat">🏠 Buat Room</button><button class="tab" data-tab="gabung">🔑 Gabung Room</button></div>
+      <div id="tabBuat">
+        <label>Pilih map</label>
+        <div class="mapGrid" id="mapPilih"></div>
+        <label>Topik soal</label>
+        <div class="chips" id="topikPilih"></div>
+        <button class="btn" id="btnBuat">Buat Room</button>
+      </div>
+      <div id="tabGabung" class="hidden">
+        <label>Kode room dari teman</label>
+        <input id="kodeInput" maxlength="5" placeholder="KODE" autocomplete="off">
+        <button class="btn biru" id="btnGabung">Gabung Room</button>
+        <p class="info">Map dan topik soal mengikuti pilihan host.</p>
+      </div>
+      <button class="btn oranye tipis" id="btnLatihan">🤖 Latihan lawan bot</button>
+      <div id="error"></div>
+      <div id="statusNet">Menyambungkan ke server room...</div>
+    </div>
+    <div class="kontrolInfo">
+      💻 <b>WASD</b> jalan · <b>Shift</b> lari · <b>Spasi</b> lompat · <b>Klik</b> tembak · <b>R</b> isi peluru<br>
+      📱 Joystick kiri untuk jalan · geser layar kanan untuk membidik · tombol di kanan bawah
+    </div>
+  </div>
+</div>
+
+<div id="hud" class="hidden">
+  <div id="topBar">
+    <button id="btnHome" class="ikonBtn" title="Kembali ke menu">🏠</button>
+    <div class="roomChip kaca"><span class="lbl">ROOM</span><b id="kodeRoom"></b><button id="btnSalin" class="mini">Salin</button></div>
+    <div id="infoChip" class="kaca"><span id="mapRoom"></span> · <span id="topikRoom"></span> · 👥 <span id="jumlahPemain">1</span></div>
+    <button id="btnMusik" class="ikonBtn" title="Musik">🎵</button>
+    <button id="btnSfx" class="ikonBtn" title="Efek suara">🔊</button>
+  </div>
+  <div id="tunggu" class="kaca hidden"></div>
+  <div id="papanSkor" class="kaca"><div class="judul"><span>🏆 Papan skor</span><span id="targetTeks"></span></div><div id="isiSkor"></div></div>
+  <div id="feed"></div>
+  <div id="crosshair"><span></span><span></span><span></span><span></span><i></i></div>
+  <div id="hitmark"></div>
+  <div id="bawah">
+    <div class="bars kaca">
+      <div class="barRow"><span class="barIkon">❤️</span><div id="hpBar"><div id="hpIsi"></div><div id="hpTeks">100</div></div></div>
+      <div class="barRow"><span class="barIkon">⚡</span><div id="staminaBar"><div id="staminaIsi"></div></div></div>
+    </div>
+    <div id="ammoBox" class="kaca"><div id="ammoAngka">10<small>/10</small></div><div id="pips"></div><div class="tips hidden" id="ammoTips">Tekan R / ❓ untuk isi</div></div>
+  </div>
+  <div id="shortcut" class="kaca"><b>Shift</b> lari · <b>R</b> isi peluru · <b>Esc</b> lepas mouse</div>
+  <div id="petunjuk" class="kaca"></div>
+  <div id="flash"></div>
+  <div id="mobile" class="hidden">
+    <div id="lookZone"></div>
+    <div id="joyZone"><div id="joyBase"><div id="joyKnob"></div></div></div>
+    <button class="mBtn" id="mbIsi">❓<span>Isi peluru</span></button>
+    <button class="mBtn" id="mbSprint">⚡<span>Lari</span></button>
+    <button class="mBtn" id="mbLompat">⬆<span>Lompat</span></button>
+    <button class="mBtn" id="mbTembak">🔫</button>
+  </div>
+</div>
+
+<div id="klikMain" class="overlay hidden"><div class="isi kaca"><div class="besar">🖱️ Klik untuk main</div><small>Esc untuk melepas mouse · panah kiri/kanan juga bisa untuk menoleh</small></div></div>
+<div id="layarMati" class="overlay hidden"><div class="t1" id="matiT1"></div><div class="t2">Bangkit lagi dalam 3 detik...</div></div>
+<div id="layarMenang" class="overlay hidden"><div class="t1" id="menangT1"></div><div class="t2">Ronde baru dimulai sebentar lagi...</div></div>
+
+<div id="kuis" class="overlay hidden">
+  <div class="kartu">
+    <div class="kuisHead"><span class="tag" id="kuisTag">🧠 ISI PELURU</span><span class="timer">Kamu tetap bisa ditembak!</span></div>
+    <div id="kuisTeks">Memuat soal...</div>
+    <div id="kuisPilihan"></div>
+    <div id="kuisHasil"></div>
+    <div class="kecil" id="kuisKecil">Tekan 1 sampai 4 untuk menjawab · Esc untuk batal</div>
+  </div>
+</div>
+
+<div id="konfirmasi" class="overlay hidden">
+  <div class="kartu">
+    <div class="em">🚪</div>
+    <h3>Keluar ke menu utama?</h3>
+    <p>Kamu akan keluar dari room ini dan skor ronde ini hilang.</p>
+    <div class="duaBtn"><button class="btn abu" id="btnBatalKeluar">Batal</button><button class="btn merah" id="btnYaKeluar">Ya, keluar</button></div>
+  </div>
+</div>
+
+<div id="putar"><div>📱</div>Putar HP ke posisi mendatar (landscape) supaya lebih enak dimainkan</div>
+
+<script type="module">
+import * as THREE from 'three';
+
+const $ = (id) => document.getElementById(id);
+const isMobile = matchMedia('(pointer: coarse)').matches || (navigator.maxTouchPoints > 0 && 'ontouchstart' in window);
+if (isMobile) document.body.classList.add('mobile');
+
+const MAX_AMMO = 10, DAMAGE = 25, TARGET_KILL = 10, MAX_PEMAIN = 10;
+const WARNA = ['#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#e67e22', '#1abc9c', '#ff6fb5', '#f1c40f', '#00bcd4', '#8d6e63'];
+const NAMA_TOPIK = { mtk: 'Matematika', ipa: 'IPA', umum: 'Pengetahuan Umum', inggris: 'Bahasa Inggris', islam: 'Agama Islam', campur: 'Campur' };
+const TOPIK_CHIP = [['campur', '🎲 Campur'], ['mtk', '➗ Matematika'], ['ipa', '🔬 IPA'], ['umum', '🌏 Umum'], ['inggris', '🔤 Inggris'], ['islam', '🕌 Agama Islam']];
+const MAP_INFO = {
+  taman: { nama: 'Taman Blok', em: '🌳', desk: 'Siang cerah, menara & kolam', grad: 'linear-gradient(170deg,#6cc9ff 0%,#b5ecff 52%,#5cc04a 53%,#3a8f2f 100%)' },
+  gurun: { nama: 'Gurun Piramida', em: '🏜️', desk: 'Senja, piramida untuk sniper', grad: 'linear-gradient(170deg,#ff7e5f 0%,#ffc371 52%,#e9c47e 53%,#c4924a 100%)' },
+  kota: { nama: 'Kota Neon', em: '🌃', desk: 'Malam, gedung & lampu neon', grad: 'linear-gradient(170deg,#0b1030 0%,#3a1c71 52%,#34364a 53%,#1b1c26 100%)' },
+};
+const ls = { get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+
+/* ================= SOAL ================= */
+// Bank soal edukasi. Tambah soal sendiri di sini dengan format:
+// { t: 'pertanyaan', b: 'jawaban benar', s: ['salah1','salah2','salah3'], e: 'penjelasan' }
+
+const acak = (a) => {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+const r = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+
+const BANK = {
+  ipa: [
+    { t: 'Planet terbesar di tata surya adalah...', b: 'Jupiter', s: ['Saturnus', 'Bumi', 'Neptunus'], e: 'Jupiter adalah planet terbesar, diameternya sekitar 11 kali Bumi.' },
+    { t: 'Proses tumbuhan membuat makanan sendiri disebut...', b: 'Fotosintesis', s: ['Respirasi', 'Evaporasi', 'Transpirasi'], e: 'Fotosintesis memakai cahaya matahari, air, dan CO2 untuk menghasilkan glukosa dan oksigen.' },
+    { t: 'Rumus kimia air adalah...', b: 'H2O', s: ['CO2', 'O2', 'NaCl'], e: 'Air tersusun dari 2 atom hidrogen dan 1 atom oksigen.' },
+    { t: 'Organ yang memompa darah ke seluruh tubuh adalah...', b: 'Jantung', s: ['Paru-paru', 'Hati', 'Ginjal'], e: 'Jantung memompa darah melalui pembuluh darah ke seluruh tubuh.' },
+    { t: 'Satuan gaya dalam SI adalah...', b: 'Newton', s: ['Joule', 'Watt', 'Pascal'], e: 'Gaya diukur dalam Newton (N), diambil dari nama Isaac Newton.' },
+    { t: 'Air mendidih pada suhu ... (tekanan normal)', b: '100 °C', s: ['50 °C', '80 °C', '120 °C'], e: 'Pada tekanan 1 atmosfer, air mendidih pada 100 °C.' },
+    { t: 'Hewan pemakan tumbuhan disebut...', b: 'Herbivora', s: ['Karnivora', 'Omnivora', 'Insektivora'], e: 'Herbivora hanya memakan tumbuhan, contohnya sapi dan kambing.' },
+    { t: 'Gas yang kita hirup untuk bernapas adalah...', b: 'Oksigen', s: ['Karbon dioksida', 'Nitrogen', 'Helium'], e: 'Tubuh memerlukan oksigen untuk proses pembakaran energi di sel.' },
+    { t: 'Perubahan wujud dari padat ke cair disebut...', b: 'Mencair', s: ['Membeku', 'Menguap', 'Menyublim'], e: 'Contohnya es batu yang mencair menjadi air.' },
+    { t: 'Bagian sel yang mengatur seluruh kegiatan sel adalah...', b: 'Inti sel', s: ['Membran sel', 'Sitoplasma', 'Dinding sel'], e: 'Inti sel (nukleus) berisi materi genetik dan mengatur aktivitas sel.' },
+    { t: 'Bumi mengelilingi matahari dalam waktu sekitar...', b: '365 hari', s: ['30 hari', '24 jam', '100 hari'], e: 'Satu kali revolusi Bumi memerlukan sekitar 365,25 hari.' },
+    { t: 'Alat untuk mengukur suhu adalah...', b: 'Termometer', s: ['Barometer', 'Speedometer', 'Higrometer'], e: 'Termometer mengukur suhu, barometer mengukur tekanan udara.' },
+  ],
+  umum: [
+    { t: 'Ibu kota negara Indonesia yang baru bernama...', b: 'Nusantara', s: ['Jakarta', 'Bandung', 'Surabaya'], e: 'Ibu Kota Nusantara (IKN) dibangun di Kalimantan Timur.' },
+    { t: 'Lambang negara Indonesia adalah...', b: 'Garuda Pancasila', s: ['Harimau', 'Banteng', 'Elang Jawa'], e: 'Garuda Pancasila memegang semboyan Bhinneka Tunggal Ika.' },
+    { t: 'Proklamasi kemerdekaan Indonesia dibacakan pada tanggal...', b: '17 Agustus 1945', s: ['20 Mei 1908', '28 Oktober 1928', '1 Juni 1945'], e: 'Soekarno dan Hatta membacakan proklamasi pada 17 Agustus 1945.' },
+    { t: 'Pulau terbesar di Indonesia adalah...', b: 'Kalimantan', s: ['Sumatra', 'Jawa', 'Sulawesi'], e: 'Wilayah Kalimantan milik Indonesia luasnya sekitar 544 ribu km persegi, terluas dibanding pulau lain di Indonesia.' },
+    { t: 'Gunung tertinggi di Indonesia adalah...', b: 'Puncak Jaya', s: ['Semeru', 'Rinjani', 'Kerinci'], e: 'Puncak Jaya di Papua tingginya sekitar 4.884 meter.' },
+    { t: 'Sila ketiga Pancasila berbunyi...', b: 'Persatuan Indonesia', s: ['Ketuhanan Yang Maha Esa', 'Kemanusiaan yang adil dan beradab', 'Keadilan sosial bagi seluruh rakyat Indonesia'], e: 'Sila ketiga dilambangkan dengan pohon beringin.' },
+    { t: 'Mata uang Jepang adalah...', b: 'Yen', s: ['Won', 'Yuan', 'Baht'], e: 'Won milik Korea Selatan, Yuan milik Tiongkok, Baht milik Thailand.' },
+    { t: 'Benua terluas di dunia adalah...', b: 'Asia', s: ['Afrika', 'Eropa', 'Amerika'], e: 'Asia luasnya sekitar 44 juta km persegi.' },
+    { t: 'Lagu kebangsaan Indonesia diciptakan oleh...', b: 'W.R. Supratman', s: ['Ismail Marzuki', 'C. Simanjuntak', 'Ibu Sud'], e: 'Indonesia Raya pertama kali diperdengarkan pada Sumpah Pemuda 1928.' },
+    { t: 'Candi Borobudur terletak di provinsi...', b: 'Jawa Tengah', s: ['Jawa Timur', 'DI Yogyakarta', 'Bali'], e: 'Borobudur ada di Magelang, Jawa Tengah.' },
+    { t: 'Samudra terluas di dunia adalah...', b: 'Pasifik', s: ['Hindia', 'Atlantik', 'Arktik'], e: 'Samudra Pasifik menutupi sekitar sepertiga permukaan Bumi.' },
+    { t: 'Hari Pendidikan Nasional diperingati setiap tanggal...', b: '2 Mei', s: ['21 April', '10 November', '1 Oktober'], e: 'Tanggal 2 Mei adalah hari lahir Ki Hajar Dewantara.' },
+  ],
+  inggris: [
+    { t: 'Bahasa Inggris dari "buku" adalah...', b: 'Book', s: ['Bag', 'Pen', 'Desk'], e: 'Book = buku, bag = tas, pen = pena, desk = meja.' },
+    { t: '"I ___ a student." Isian yang tepat adalah...', b: 'am', s: ['is', 'are', 'be'], e: 'Subjek "I" selalu memakai "am".' },
+    { t: 'Lawan kata dari "big" adalah...', b: 'Small', s: ['Tall', 'Long', 'Wide'], e: 'Big = besar, small = kecil.' },
+    { t: 'Bahasa Inggris dari "Rabu" adalah...', b: 'Wednesday', s: ['Tuesday', 'Thursday', 'Monday'], e: 'Tuesday = Selasa, Wednesday = Rabu, Thursday = Kamis.' },
+    { t: '"She ___ to school every day." Isian yang tepat adalah...', b: 'goes', s: ['go', 'going', 'gone'], e: 'Simple present untuk she/he/it ditambah -s atau -es: goes.' },
+    { t: 'Bentuk lampau (past) dari "eat" adalah...', b: 'ate', s: ['eated', 'eaten', 'eating'], e: 'Eat adalah kata kerja tak beraturan: eat, ate, eaten.' },
+    { t: 'Arti kata "beautiful" adalah...', b: 'Indah / cantik', s: ['Jelek', 'Besar', 'Cepat'], e: 'Beautiful berarti indah atau cantik.' },
+    { t: 'Jamak (plural) dari "child" adalah...', b: 'Children', s: ['Childs', 'Childes', 'Childrens'], e: 'Child adalah bentuk jamak tak beraturan: children.' },
+    { t: 'Bahasa Inggris dari "dapur" adalah...', b: 'Kitchen', s: ['Bedroom', 'Garden', 'Bathroom'], e: 'Kitchen = dapur, bedroom = kamar tidur.' },
+    { t: '"There ___ three cats on the roof." Isian yang tepat adalah...', b: 'are', s: ['is', 'am', 'was'], e: 'Benda jamak (three cats) memakai "are".' },
+    { t: 'Angka 15 dalam bahasa Inggris adalah...', b: 'Fifteen', s: ['Fifty', 'Five', 'Fourteen'], e: 'Fifteen = 15, fifty = 50.' },
+    { t: 'Arti "How are you?" adalah...', b: 'Apa kabar?', s: ['Siapa namamu?', 'Kamu di mana?', 'Berapa umurmu?'], e: 'How are you? dipakai untuk menanyakan kabar.' },
+  ],
+  islam: [
+    { t: 'Rukun Islam ada berapa?', b: '5', s: ['4', '6', '7'], e: 'Syahadat, shalat, zakat, puasa Ramadhan, dan haji bagi yang mampu.' },
+    { t: 'Rukun Iman ada berapa?', b: '6', s: ['5', '4', '7'], e: 'Iman kepada Allah, malaikat, kitab, rasul, hari akhir, dan qada qadar.' },
+    { t: 'Surat pertama dalam Al-Qur\'an adalah...', b: 'Al-Fatihah', s: ['Al-Baqarah', 'An-Nas', 'Al-Ikhlas'], e: 'Al-Fatihah disebut juga Ummul Kitab.' },
+    { t: 'Jumlah juz dalam Al-Qur\'an adalah...', b: '30', s: ['114', '20', '40'], e: 'Al-Qur\'an terdiri dari 30 juz dan 114 surat.' },
+    { t: 'Malaikat yang menyampaikan wahyu adalah...', b: 'Jibril', s: ['Mikail', 'Israfil', 'Izrail'], e: 'Jibril menyampaikan wahyu Allah kepada para nabi dan rasul.' },
+    { t: 'Shalat fardhu dalam sehari semalam berjumlah...', b: '5 waktu', s: ['3 waktu', '4 waktu', '6 waktu'], e: 'Subuh, Zuhur, Asar, Magrib, dan Isya.' },
+    { t: 'Kitab suci yang diturunkan kepada Nabi Musa adalah...', b: 'Taurat', s: ['Zabur', 'Injil', 'Al-Qur\'an'], e: 'Zabur untuk Nabi Daud, Injil untuk Nabi Isa, Al-Qur\'an untuk Nabi Muhammad.' },
+    { t: 'Surat terpendek dalam Al-Qur\'an adalah...', b: 'Al-Kautsar', s: ['Al-Ikhlas', 'An-Nas', 'Al-Asr'], e: 'Al-Kautsar hanya terdiri dari 3 ayat pendek.' },
+    { t: 'Nabi Muhammad lahir di kota...', b: 'Makkah', s: ['Madinah', 'Thaif', 'Yerusalem'], e: 'Nabi Muhammad lahir di Makkah pada Tahun Gajah.' },
+    { t: 'Hukum bacaan nun mati bertemu huruf ba disebut...', b: 'Iqlab', s: ['Idgham', 'Izhar', 'Ikhfa'], e: 'Iqlab: nun mati atau tanwin bertemu ba dibaca menjadi suara mim.' },
+    { t: 'Puasa wajib dilaksanakan pada bulan...', b: 'Ramadhan', s: ['Syawal', 'Muharram', 'Rajab'], e: 'Puasa Ramadhan adalah rukun Islam yang keempat.' },
+    { t: 'Zakat yang wajib dikeluarkan menjelang Idul Fitri adalah...', b: 'Zakat fitrah', s: ['Zakat mal', 'Infaq', 'Sedekah jariyah'], e: 'Zakat fitrah dibayarkan sebelum shalat Idul Fitri.' },
+  ],
+};
+
+function soalMtk() {
+  const jenis = r(0, 4);
+  let teks, jawab, penj;
+  if (jenis === 0) {
+    const a = r(12, 99), b = r(12, 99);
+    jawab = a + b; teks = `${a} + ${b} = ?`; penj = `${a} ditambah ${b} hasilnya ${jawab}.`;
+  } else if (jenis === 1) {
+    const a = r(40, 150), b = r(10, a);
+    jawab = a - b; teks = `${a} - ${b} = ?`; penj = `${a} dikurangi ${b} hasilnya ${jawab}.`;
+  } else if (jenis === 2) {
+    const a = r(3, 15), b = r(3, 12);
+    jawab = a * b; teks = `${a} × ${b} = ?`; penj = `${a} dikali ${b} sama dengan ${jawab}.`;
+  } else if (jenis === 3) {
+    const b = r(2, 12), h = r(2, 15), a = b * h;
+    jawab = h; teks = `${a} ÷ ${b} = ?`; penj = `Karena ${b} × ${h} = ${a}, maka ${a} ÷ ${b} = ${h}.`;
+  } else {
+    const p = [10, 20, 25, 50][r(0, 3)], n = r(2, 20) * 20;
+    jawab = (n * p) / 100; teks = `${p}% dari ${n} = ?`; penj = `${p}/100 × ${n} = ${jawab}.`;
+  }
+  const set = new Set([jawab]);
+  while (set.size < 4) {
+    const d = jawab + r(-10, 10);
+    if (d !== jawab && d >= 0) set.add(d);
+  }
+  const pilihan = acak([...set].map(String));
+  return { teks, pilihan, benar: pilihan.indexOf(String(jawab)), penjelasan: penj };
+}
+
+function dariBank(bank) {
+  const q = bank[r(0, bank.length - 1)];
+  const pilihan = acak([q.b, ...q.s]);
+  return { teks: q.t, pilihan, benar: pilihan.indexOf(q.b), penjelasan: q.e };
+}
+
+const TOPIK = ['mtk', 'ipa', 'umum', 'inggris', 'islam', 'campur'];
+
+function buatSoal(topik) {
+  if (topik === 'campur') topik = ['mtk', 'ipa', 'umum', 'inggris', 'islam'][r(0, 4)];
+  if (topik === 'mtk') return soalMtk();
+  return dariBank(BANK[topik]);
+}
+
+
+
+/* ================= AUDIO (dibuat dengan kode) ================= */
+const AU = { ctx: null, master: null, mus: null, sfx: null, noise: null, musikOn: ls.get('musik', '1') === '1', sfxOn: ls.get('sfx', '1') === '1', lagu: null, step: 0, next: 0, timer: null };
+const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
+function audioInit() {
+  if (AU.ctx) { if (AU.ctx.state === 'suspended') AU.ctx.resume(); return; }
+  try { AU.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+  const c = AU.ctx;
+  AU.master = c.createGain(); AU.master.gain.value = 0.8; AU.master.connect(c.destination);
+  AU.mus = c.createGain(); AU.mus.gain.value = 0.15; AU.mus.connect(AU.master);
+  AU.sfx = c.createGain(); AU.sfx.gain.value = 0.55; AU.sfx.connect(AU.master);
+  const b = c.createBuffer(1, c.sampleRate, c.sampleRate); const d = b.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  AU.noise = b;
+}
+function nada(f, t, dur, type, vol, dest, slide) {
+  const c = AU.ctx, o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t);
+  if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + 0.03);
+}
+function desis(t, dur, vol, dest, freq = 3000, type = 'bandpass') {
+  const c = AU.ctx, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  s.buffer = AU.noise; f.type = type; f.frequency.value = freq;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f); f.connect(g); g.connect(dest); s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.03);
+}
+function sfx(nama, vol = 1) {
+  if (!AU.ctx || !AU.sfxOn || vol <= 0.02) return;
+  const t = AU.ctx.currentTime, d = AU.sfx;
+  switch (nama) {
+    case 'tembak': nada(900 * (0.9 + Math.random() * 0.25), t, 0.13, 'square', 0.22 * vol, d, 120); desis(t, 0.1, 0.5 * vol, d, 2600); nada(170, t, 0.09, 'sine', 0.5 * vol, d, 55); break;
+    case 'kena': nada(1500, t, 0.05, 'square', 0.14, d, 1900); nada(2100, t + 0.045, 0.08, 'square', 0.1, d); break;
+    case 'sakit': nada(240, t, 0.2, 'sawtooth', 0.22, d, 90); desis(t, 0.12, 0.3, d, 700, 'lowpass'); break;
+    case 'tumbang': nada(440, t, 0.4, 'sawtooth', 0.22 * vol, d, 70); break;
+    case 'kill': nada(660, t, 0.1, 'triangle', 0.3, d); nada(990, t + 0.09, 0.2, 'triangle', 0.3, d); nada(1320, t + 0.18, 0.25, 'triangle', 0.25, d); break;
+    case 'benar': [523, 659, 784, 1047].forEach((f, i) => nada(f, t + i * 0.08, 0.2, 'triangle', 0.3, d)); break;
+    case 'salah': nada(320, t, 0.2, 'square', 0.16, d); nada(210, t + 0.2, 0.32, 'square', 0.16, d); break;
+    case 'lompat': nada(300, t, 0.13, 'sine', 0.22, d, 720); break;
+    case 'klik': nada(880, t, 0.04, 'square', 0.08, d); break;
+    case 'habis': nada(180, t, 0.06, 'square', 0.12, d); desis(t, 0.03, 0.2, d, 5000); break;
+    case 'gabung': nada(660, t, 0.09, 'sine', 0.2, d); nada(880, t + 0.08, 0.12, 'sine', 0.2, d); break;
+    case 'menang': [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => nada(f, t + i * 0.12, 0.28, 'square', 0.16, d)); break;
+  }
+}
+// Musik latar per map (sequencer 16 langkah per bar)
+const LAGU = {
+  taman: { bpm: 118, wave: 'square', bass: 'triangle', akor: [[60, 64, 67], [57, 60, 64], [53, 57, 60], [55, 59, 62]],
+    lead: [72, 0, 76, 0, 79, 0, 76, 0, 77, 0, 76, 0, 74, 0, 72, 0, 74, 0, 76, 0, 77, 0, 79, 0, 76, 0, 74, 0, 72, 0, 0, 0] },
+  gurun: { bpm: 96, wave: 'triangle', bass: 'sine', akor: [[52, 56, 59], [53, 57, 60], [52, 56, 59], [50, 53, 57]],
+    lead: [64, 0, 65, 68, 0, 69, 68, 65, 64, 0, 0, 0, 71, 0, 72, 71, 69, 0, 68, 0, 65, 0, 68, 69, 68, 65, 64, 0, 0, 0, 0, 0] },
+  kota: { bpm: 124, wave: 'sawtooth', bass: 'sawtooth', akor: [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]],
+    lead: [69, 72, 76, 72, 69, 72, 76, 79, 77, 76, 72, 69, 72, 0, 0, 0, 65, 69, 72, 69, 65, 69, 72, 77, 76, 74, 72, 71, 72, 0, 0, 0] },
+};
+function langkahMusik(s, t, L) {
+  const dur = 60 / L.bpm / 4, d = AU.mus;
+  const akor = L.akor[Math.floor(s / 16) % 4];
+  if (s % 16 === 0) akor.forEach((m) => nada(mtof(m), t, dur * 16, 'triangle', 0.05, d));
+  if (s % 4 === 0 || s % 16 === 10) nada(mtof(akor[0] - 12), t, dur * 2, L.bass, 0.22, d);
+  const n = L.lead[s % 32]; if (n) nada(mtof(n), t, dur * 1.7, L.wave, L.wave === 'sawtooth' ? 0.045 : 0.07, d);
+  if (s % 4 === 0) nada(150, t, 0.12, 'sine', 0.45, d, 45);
+  if (s % 8 === 4) desis(t, 0.12, 0.22, d, 1800);
+  if (s % 2 === 1) desis(t, 0.03, 0.06, d, 8000, 'highpass');
+}
+function musikMulai(id) {
+  if (!AU.ctx || !AU.musikOn) return;
+  AU.lagu = LAGU[id] || LAGU.taman;
+  if (AU.timer) return;
+  AU.step = 0; AU.next = AU.ctx.currentTime + 0.1;
+  AU.timer = setInterval(() => {
+    if (!AU.lagu) return;
+    while (AU.next < AU.ctx.currentTime + 0.15) {
+      langkahMusik(AU.step, AU.next, AU.lagu);
+      AU.next += 60 / AU.lagu.bpm / 4; AU.step++;
+    }
+  }, 30);
+}
+function musikStop() { clearInterval(AU.timer); AU.timer = null; }
+function setMusik(on) { AU.musikOn = on; ls.set('musik', on ? '1' : '0'); if (on) { audioInit(); musikMulai(mapAktif); } else musikStop(); tombolSuara(); }
+function setSfx(on) { AU.sfxOn = on; ls.set('sfx', on ? '1' : '0'); tombolSuara(); }
+function tombolSuara() {
+  $('btnMusik').classList.toggle('mati', !AU.musikOn); $('btnSuaraLobby').style.opacity = AU.musikOn ? 1 : 0.4;
+  $('btnSfx').classList.toggle('mati', !AU.sfxOn); $('btnSfx').textContent = AU.sfxOn ? '🔊' : '🔇';
+}
+document.addEventListener('pointerdown', () => { const awal = !AU.ctx; audioInit(); if (awal && AU.musikOn) musikMulai(mapAktif); }, true);
+
+/* ================= RENDERER & SCENE ================= */
+const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.1, 400);
+const hemi = new THREE.HemisphereLight('#ffffff', '#6b8f4e', 1.9); scene.add(hemi);
+const sun = new THREE.DirectionalLight('#ffffff', 2.2);
+sun.castShadow = true;
+sun.shadow.mapSize.set(isMobile ? 1024 : 2048, isMobile ? 1024 : 2048);
+Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, far: 260 });
+sun.shadow.bias = -0.0005;
+scene.add(sun);
+const muzzleLight = new THREE.PointLight('#ffffff', 0, 9, 2); scene.add(muzzleLight);
+
+function kanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; }
+function jadiTekstur(c, ulangX = 1, ulangY = ulangX) {
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(ulangX, ulangY); t.anisotropy = 8; return t;
+}
+function teksturStud(warna, ulang, kuat = 1) {
+  const [c, g] = kanvas(64, 64);
+  g.fillStyle = warna; g.fillRect(0, 0, 64, 64);
+  g.fillStyle = `rgba(0,0,0,${0.12 * kuat})`; g.beginPath(); g.arc(34, 35, 15, 0, 7); g.fill();
+  g.fillStyle = `rgba(255,255,255,${0.16 * kuat})`; g.beginPath(); g.arc(32, 32, 14, 0, 7); g.fill();
+  g.strokeStyle = `rgba(0,0,0,${0.1 * kuat})`; g.lineWidth = 2; g.strokeRect(0, 0, 64, 64);
+  return jadiTekstur(c, ulang);
+}
+const TEX_GLOW = (() => {
+  const [c, g] = kanvas(128, 128);
+  const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.25, 'rgba(255,255,255,.85)'); gr.addColorStop(0.6, 'rgba(255,255,255,.25)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  return jadiTekstur(c);
+})();
+const TEX_BINTANG = (() => {
+  const [c, g] = kanvas(128, 128);
+  g.translate(64, 64); g.fillStyle = '#fff';
+  for (let i = 0; i < 4; i++) { g.rotate(Math.PI / 4); g.beginPath(); g.moveTo(0, -60); g.lineTo(8, 0); g.lineTo(0, 60); g.lineTo(-8, 0); g.fill(); }
+  return jadiTekstur(c);
+})();
+function teksturJendela(dasar, nyala) {
+  const [c, g] = kanvas(64, 128);
+  g.fillStyle = dasar; g.fillRect(0, 0, 64, 128);
+  for (let y = 0; y < 8; y++) for (let x = 0; x < 4; x++) {
+    const r = Math.random();
+    g.fillStyle = r < 0.45 ? nyala[Math.floor(Math.random() * nyala.length)] : 'rgba(0,0,0,.35)';
+    g.fillRect(6 + x * 14, 6 + y * 15, 9, 10);
+  }
+  return jadiTekstur(c);
+}
+
+/* ================= MAP ================= */
+let mapGroup = null, mapAktif = 'taman';
+const KOTAK = [], blokMesh = [], mapAnim = [];
+let SPAWN_MAP = [];
+const matCache = {};
+const mat = (warna, rough = 0.6) => matCache[warna + rough] || (matCache[warna + rough] = new THREE.MeshStandardMaterial({ color: warna, roughness: rough }));
+const neon = (warna) => matCache['n' + warna] || (matCache['n' + warna] = new THREE.MeshBasicMaterial({ color: warna }));
+
+function kotak(x, z, w, h, d, warna, y0 = 0, material) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material || mat(warna));
+  m.position.set(x, y0 + h / 2, z); m.castShadow = m.receiveShadow = true;
+  mapGroup.add(m); blokMesh.push(m);
+  KOTAK.push({ minX: x - w / 2, maxX: x + w / 2, minY: y0, maxY: y0 + h, minZ: z - d / 2, maxZ: z + d / 2 });
+  return m;
+}
+function hias(x, y, z, w, h, d, warna, material, bayang = true) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material || mat(warna));
+  m.position.set(x, y, z); m.castShadow = bayang; m.receiveShadow = true; mapGroup.add(m); return m;
+}
+function langit(warna, kabut, dekat, jauh) { scene.background = new THREE.Color(warna); scene.fog = new THREE.Fog(kabut, dekat, jauh); }
+function cahaya(atas, bawah, ki, warnaSun, ks, pos) { hemi.color.set(atas); hemi.groundColor.set(bawah); hemi.intensity = ki; sun.color.set(warnaSun); sun.intensity = ks; sun.position.set(...pos); }
+function lantai(warna, luar, kuat = 1) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), new THREE.MeshLambertMaterial({ map: teksturStud(warna, 60, kuat) }));
+  m.rotation.x = -Math.PI / 2; m.receiveShadow = true; mapGroup.add(m);
+  const l = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshLambertMaterial({ color: luar }));
+  l.rotation.x = -Math.PI / 2; l.position.y = -0.05; mapGroup.add(l);
+}
+function pagar(warna, tinggi) {
+  kotak(0, -60.5, 122, tinggi, 1, warna); kotak(0, 60.5, 122, tinggi, 1, warna);
+  kotak(-60.5, 0, 1, tinggi, 122, warna); kotak(60.5, 0, 1, tinggi, 122, warna);
+}
+function air(x, z, r) {
+  const m = new THREE.Mesh(new THREE.CircleGeometry(r, 32), new THREE.MeshStandardMaterial({ color: '#3fb6ff', roughness: 0.1, metalness: 0.2, transparent: true, opacity: 0.85 }));
+  m.rotation.x = -Math.PI / 2; m.position.set(x, 0.04, z); mapGroup.add(m);
+  const tepi = new THREE.Mesh(new THREE.RingGeometry(r, r + 0.6, 32), mat('#d9d2c0'));
+  tepi.rotation.x = -Math.PI / 2; tepi.position.set(x, 0.05, z); mapGroup.add(tepi);
+  mapAnim.push((dt, t) => { m.material.color.setHSL(0.56, 0.9, 0.58 + Math.sin(t * 2) * 0.03); });
+}
+function awan(n) {
+  const putih = new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#ffffff', emissiveIntensity: 0.25 });
+  for (let i = 0; i < n; i++) {
+    const g = new THREE.Group();
+    const k = 2 + Math.floor(Math.random() * 3);
+    for (let j = 0; j < k; j++) { const b = new THREE.Mesh(new THREE.BoxGeometry(6 + Math.random() * 8, 2 + Math.random() * 2, 5 + Math.random() * 6), putih); b.position.set(j * 5 - k * 2, Math.random() * 1.5, Math.random() * 4 - 2); g.add(b); }
+    g.position.set(Math.random() * 300 - 150, 40 + Math.random() * 18, Math.random() * 300 - 150);
+    const v = 1.5 + Math.random() * 2;
+    mapGroup.add(g);
+    mapAnim.push((dt) => { g.position.x += v * dt; if (g.position.x > 160) g.position.x = -160; });
+  }
+}
+function bintang(n) {
+  const pos = [];
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, e = Math.random() * 1.3 + 0.1, r = 180;
+    pos.push(Math.cos(a) * Math.cos(e) * r, Math.sin(e) * r, Math.sin(a) * Math.cos(e) * r);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  const p = new THREE.Points(g, new THREE.PointsMaterial({ color: '#ffffff', size: 1.4, fog: false, sizeAttenuation: true }));
+  mapGroup.add(p);
+}
+function piringan(warna, pos, skala) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX_GLOW, color: warna, fog: false, depthWrite: false }));
+  s.position.set(...pos); s.scale.set(skala, skala, 1); mapGroup.add(s);
+}
+function pohon(x, z, s = 1, tabrakan = true) {
+  const f = tabrakan ? kotak : (xx, zz, w, h, d, c, y0) => hias(xx, y0 + h / 2, zz, w, h, d, c);
+  f(x, z, 0.9 * s, 2.6 * s, 0.9 * s, '#8b5a2b', 0);
+  f(x, z, 3.2 * s, 2.4 * s, 3.2 * s, '#2fbf4f', 2.4 * s);
+  f(x, z, 2 * s, 1.3 * s, 2 * s, '#27a845', 4.8 * s);
+}
+function bendera(x, y, z, warna) {
+  hias(x, y + 2, z, 0.15, 4, 0.15, '#ddd');
+  const geo = new THREE.PlaneGeometry(1.8, 1.1, 8, 1); geo.translate(0.9, 0, 0);
+  const f = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: warna, side: THREE.DoubleSide }));
+  f.position.set(x, y + 3.4, z); mapGroup.add(f);
+  const asli = geo.attributes.position.array.slice();
+  mapAnim.push((dt, t) => { const a = geo.attributes.position.array; for (let i = 0; i < a.length; i += 3) a[i + 2] = Math.sin(asli[i] * 2.5 - t * 6) * 0.18 * asli[i]; geo.attributes.position.needsUpdate = true; });
+}
+function piramida(x, z, ukuran, lantaiN, warna1, warna2) {
+  const lang = ukuran / lantaiN;
+  for (let i = 0; i < lantaiN; i++) { const s = ukuran - lang * i; kotak(x, z, s, 1, s, i % 2 ? warna2 : warna1, i); }
+}
+function papanNeon(teks, warna, x, y, z, ry, lebar = 6) {
+  const [c, g] = kanvas(512, 128);
+  g.font = '700 84px Fredoka, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.shadowColor = warna; g.shadowBlur = 28; g.fillStyle = warna; g.fillText(teks, 256, 66); g.shadowBlur = 10; g.fillStyle = '#fff'; g.fillText(teks, 256, 66);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(lebar, lebar / 4), new THREE.MeshBasicMaterial({ map: jadiTekstur(c), transparent: true, side: THREE.DoubleSide, depthWrite: false }));
+  m.position.set(x, y, z); m.rotation.y = ry; mapGroup.add(m);
+  mapAnim.push((dt, t) => { m.material.opacity = 0.85 + Math.sin(t * 7 + x) * 0.15 * (Math.sin(t * 1.3 + z) > 0.8 ? 1 : 0.2); });
+}
+function mobil(x, z, arahX, warna) {
+  const [w, d] = arahX ? [4.4, 2.2] : [2.2, 4.4];
+  kotak(x, z, w, 1.1, d, warna, 0.25);
+  kotak(x, z, w * (arahX ? 0.55 : 0.9), 0.8, d * (arahX ? 0.9 : 0.55), '#a9d6ff', 1.35, new THREE.MeshStandardMaterial({ color: '#a9d6ff', roughness: 0.1, metalness: 0.4 }));
+  for (const s of [-1, 1]) for (const e of [-1, 1]) hias(x + (arahX ? s * 1.4 : e * 0.85), 0.3, z + (arahX ? e * 0.85 : s * 1.4), arahX ? 0.7 : 0.35, 0.6, arahX ? 0.35 : 0.7, '#111');
+  const lampu = neon('#fff6c4');
+  if (arahX) { hias(x + 2.21, 0.8, z - 0.6, 0.05, 0.25, 0.4, null, lampu, false); hias(x + 2.21, 0.8, z + 0.6, 0.05, 0.25, 0.4, null, lampu, false); }
+  else { hias(x - 0.6, 0.8, z + 2.21, 0.4, 0.25, 0.05, null, lampu, false); hias(x + 0.6, 0.8, z + 2.21, 0.4, 0.25, 0.05, null, lampu, false); }
+}
+
+const MAPS = {
+  taman: { spawn: [[0, -36], [0, 36], [-36, 0], [36, 0], [-28, -28], [28, 28], [-28, 28], [28, -28], [-14, -44], [14, 44]], bangun() {
+    langit('#7cc8ff', '#a9dcff', 80, 200); cahaya('#ffffff', '#7a9e5a', 1.9, '#fff4d6', 2.4, [40, 75, 30]);
+    lantai('#5bb543', '#4e9e38');
+    pagar('#f2efe6', 3); for (let i = -55; i <= 55; i += 10) { hias(i, 3.3, -60.5, 1.2, 0.6, 1.2, '#e74c3c'); hias(i, 3.3, 60.5, 1.2, 0.6, 1.2, '#3498db'); hias(-60.5, 3.3, i, 1.2, 0.6, 1.2, '#f1c40f'); hias(60.5, 3.3, i, 1.2, 0.6, 1.2, '#2ecc71'); }
+    // Kastil tengah
+    kotak(0, 0, 12, 1, 12, '#c8ced8'); kotak(0, 0, 5, 3, 5, '#e74c3c', 1);
+    kotak(4.75, 0, 1.5, 1, 2.4, '#ecf0f1', 1); kotak(3.25, 0, 1.5, 2, 2.4, '#ecf0f1', 1);
+    kotak(-4.75, 0, 1.5, 1, 2.4, '#ecf0f1', 1); kotak(-3.25, 0, 1.5, 2, 2.4, '#ecf0f1', 1);
+    for (const [a, b] of [[-2.1, -2.1], [2.1, 2.1], [-2.1, 2.1], [2.1, -2.1]]) kotak(a, b, 0.8, 0.8, 0.8, '#c0392b', 4);
+    bendera(0, 4, 0, '#ffd23f');
+    // Dinding warna-warni
+    kotak(-16, -8, 2, 2.4, 9, '#3498db'); kotak(16, 8, 2, 2.4, 9, '#3498db');
+    kotak(-8, 16, 9, 2.4, 2, '#f1c40f'); kotak(8, -16, 9, 2.4, 2, '#f1c40f');
+    kotak(-16, 14, 2, 1.6, 5, '#9b59b6'); kotak(16, -14, 2, 1.6, 5, '#9b59b6');
+    // Peti kayu
+    for (const [x, z] of [[-10, -24], [10, 24], [24, -6], [-24, 6]]) { kotak(x, z, 1.6, 1.6, 1.6, '#d39b4a'); kotak(x + 1.7, z, 1.6, 1.6, 1.6, '#c98d3d'); kotak(x + 0.85, z, 1.6, 1.6, 1.6, '#e0ab62', 1.6); }
+    // Pagar tanaman
+    kotak(0, -28, 7, 1.3, 1.3, '#2f8f3a'); kotak(0, 28, 7, 1.3, 1.3, '#2f8f3a'); kotak(-44, 0, 1.3, 1.3, 7, '#2f8f3a'); kotak(44, 0, 1.3, 1.3, 7, '#2f8f3a');
+    // Pohon
+    for (const [x, z] of [[-30, -12], [-36, 12], [30, 12], [36, -12], [-12, 36], [12, -36], [-46, -40], [46, 40], [40, -46], [-40, 46], [24, 36], [-24, -36], [-50, 20], [50, -20]]) pohon(x, z, 0.9 + Math.random() * 0.3);
+    // Kolam
+    air(-26, 24, 6.5); air(28, -30, 4.5);
+    const bunga = ['#ff6fb5', '#ffd23f', '#ffffff', '#ff7043', '#b388ff'];
+    for (let i = 0; i < 60; i++) { const a = Math.random() * 6.28, r = 7.5 + Math.random() * 3; hias(-26 + Math.cos(a) * r, 0.2, 24 + Math.sin(a) * r, 0.35, 0.4, 0.35, bunga[i % 5], null, false); }
+    for (let i = 0; i < 50; i++) { const x = Math.random() * 110 - 55, z = Math.random() * 110 - 55; if (Math.hypot(x, z) > 10) hias(x, 0.15, z, 0.3, 0.3, 0.3, bunga[i % 5], null, false); }
+    // Pemandangan luar
+    for (let i = 0; i < 26; i++) { const a = (i / 26) * Math.PI * 2, r = 85 + Math.random() * 40; const s = 12 + Math.random() * 18; const bk = new THREE.Mesh(new THREE.SphereGeometry(s, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(i % 2 ? '#4fa63a' : '#5cb846', 0.9)); bk.position.set(Math.cos(a) * r, -1, Math.sin(a) * r); bk.scale.y = 0.6; mapGroup.add(bk); }
+    for (let i = 0; i < 30; i++) { const a = Math.random() * 6.28, r = 66 + Math.random() * 14; pohon(Math.cos(a) * r, Math.sin(a) * r, 1 + Math.random() * 0.6, false); }
+    awan(16); piringan('#fff6c8', [120, 150, 80], 60);
+  } },
+
+  gurun: { spawn: [[0, -42], [0, 42], [-42, 0], [42, 0], [-20, -44], [20, 44], [-44, 20], [44, -20], [-50, -8], [50, 8]], bangun() {
+    langit('#ffae7a', '#ffc79a', 70, 190); cahaya('#fff0d0', '#c98f4b', 1.55, '#ffc98a', 2.5, [-70, 38, 30]);
+    lantai('#e7c27c', '#dcb26a', 0.8);
+    pagar('#d4a866', 4); for (let i = -54; i <= 54; i += 12) { hias(i, 4.4, -60.5, 1.4, 0.8, 1.4, '#b8874a'); hias(i, 4.4, 60.5, 1.4, 0.8, 1.4, '#b8874a'); hias(-60.5, 4.4, i, 1.4, 0.8, 1.4, '#b8874a'); hias(60.5, 4.4, i, 1.4, 0.8, 1.4, '#b8874a'); }
+    // Piramida besar & kecil
+    piramida(0, 0, 18, 6, '#d8a65c', '#cc994f'); kotak(0, 0, 1, 1, 1, '#ffcf3f', 6, new THREE.MeshStandardMaterial({ color: '#ffcf3f', metalness: 0.7, roughness: 0.25 }));
+    piramida(-34, -30, 9, 3, '#d8a65c', '#cc994f'); piramida(36, 30, 9, 3, '#d8a65c', '#cc994f');
+    // Reruntuhan pilar
+    const pil = '#e3c58f';
+    [[-12, 4], [-8, 4], [-4, 2], [4, 4], [8, 4], [12, 1.5]].forEach(([x, h]) => kotak(x, 24, 1.5, h, 1.5, pil));
+    kotak(-10, 24, 5.6, 0.8, 1.7, '#d6b47a', 4); kotak(6, 24, 5.6, 0.8, 1.7, '#d6b47a', 4);
+    [[-12, 1.5], [-8, 4], [-4, 4], [4, 2], [8, 4], [12, 4]].forEach(([x, h]) => kotak(x, -24, 1.5, h, 1.5, pil));
+    kotak(-6, -24, 5.6, 0.8, 1.7, '#d6b47a', 4); kotak(10, -24, 5.6, 0.8, 1.7, '#d6b47a', 4);
+    // Tembok runtuh
+    kotak(-22, 0, 1.3, 2.6, 7, '#d9b47a'); kotak(22, 0, 1.3, 1.8, 7, '#d9b47a'); kotak(-22, -4.2, 1.3, 1.2, 1.4, '#d9b47a');
+    kotak(-30, 14, 6, 1.2, 1.3, '#cfa86e'); kotak(30, -14, 6, 1.2, 1.3, '#cfa86e');
+    // Kaktus
+    for (const [x, z] of [[-40, -10], [40, 10], [-18, -42], [18, 42], [-46, 32], [46, -32], [8, -40], [-8, 40], [-52, -30], [52, 30]]) {
+      kotak(x, z, 0.9, 3.4, 0.9, '#3f9b4a');
+      hias(x + 0.8, 1.6, z, 0.7, 0.5, 0.6, '#3f9b4a'); hias(x + 1.05, 2.3, z, 0.5, 1.1, 0.5, '#3f9b4a');
+      hias(x - 0.8, 2.0, z, 0.7, 0.5, 0.6, '#3f9b4a'); hias(x - 1.05, 2.6, z, 0.5, 0.9, 0.5, '#3f9b4a');
+      hias(x, 3.45, z, 0.4, 0.2, 0.4, '#ff6fb5', null, false);
+    }
+    // Oasis & palem
+    air(28, -32, 6);
+    for (const [x, z] of [[21, -27], [34, -38], [35, -26]]) {
+      for (let i = 0; i < 6; i++) hias(x + i * 0.12, 0.5 + i * 0.9, z, 0.6, 0.95, 0.6, i % 2 ? '#9b6a3a' : '#8b5a2b');
+      for (let i = 0; i < 5; i++) { const d = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.15, 0.9), mat('#2e9b45')); d.position.set(x + 0.7, 5.8, z); d.rotation.y = (i / 5) * Math.PI * 2; d.rotation.z = -0.35; d.geometry.translate(1.6, 0, 0); mapGroup.add(d); }
+    }
+    for (const [x, z] of [[-14, 10], [14, -10], [-48, 6], [48, -6]]) { kotak(x, z, 2.2, 1.2, 1.8, '#a8865c'); hias(x + 1.2, 0.4, z + 0.6, 1, 0.8, 1, '#9a7a52'); }
+    // Pemandangan luar: bukit pasir & piramida jauh
+    for (let i = 0; i < 24; i++) { const a = (i / 24) * Math.PI * 2, r = 85 + Math.random() * 50, s = 16 + Math.random() * 20; const d = new THREE.Mesh(new THREE.SphereGeometry(s, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(i % 2 ? '#e2b46c' : '#d9a85e', 0.95)); d.position.set(Math.cos(a) * r, -1, Math.sin(a) * r); d.scale.set(1.6, 0.35, 1); d.rotation.y = a; mapGroup.add(d); }
+    for (const [x, z, s] of [[-140, -60, 40], [130, -110, 55], [60, 150, 35]]) { for (let i = 0; i < 8; i++) { const w = s - (s / 8) * i; hias(x, i * (s / 16) + s / 32, z, w, s / 16, w, i % 2 ? '#c9965a' : '#d6a466', null, false); } }
+    piringan('#ffb15a', [-180, 55, 80], 110); piringan('#fff1c0', [-180, 55, 80], 40);
+  } },
+
+  kota: { spawn: [[0, -40], [0, 40], [-40, 0], [40, 0], [0, -22], [0, 22], [-22, 0], [22, 0], [-54, 0], [54, 0]], bangun() {
+    langit('#0a0f2c', '#0f1438', 55, 150); cahaya('#7686ff', '#16162a', 1.05, '#a9bbff', 1.2, [-30, 70, -25]);
+    lantai('#2f313e', '#1b1c26', 0.5);
+    // Jalan raya
+    const aspal = new THREE.MeshLambertMaterial({ color: '#23242e' });
+    for (const rot of [0, Math.PI / 2]) {
+      const j = new THREE.Mesh(new THREE.PlaneGeometry(120, 12), aspal); j.rotation.x = -Math.PI / 2; j.rotation.z = rot; j.position.y = 0.02; mapGroup.add(j);
+      for (let i = -56; i <= 56; i += 6) { if (Math.abs(i) < 8) continue; const g = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.3), neon('#ffd23f')); g.rotation.x = -Math.PI / 2; g.rotation.z = rot; g.position.set(rot ? 0 : i, 0.03, rot ? i : 0); mapGroup.add(g); }
+    }
+    for (let i = -4; i <= 4; i += 1.6) for (const s of [-1, 1]) { hias(i, 0.03, s * 8.5, 0.8, 0.02, 2.6, null, neon('#e8e8f0'), false); hias(s * 8.5, 0.03, i, 2.6, 0.02, 0.8, null, neon('#e8e8f0'), false); }
+    pagar('#2c3046', 6);
+    const warnaNeon = ['#ff2bd6', '#20e3ff', '#ffe14d', '#7cff5b'];
+    for (const [a, b, c, d] of [[0, -60, 122, 1], [0, 60, 122, 1], [-60, 0, 1, 122], [60, 0, 1, 122]]) hias(a, 6.1, b, c, 0.2, d, null, neon('#ff2bd6'), false);
+    // Gedung
+    const gedung = [[22, 22, 12, 12, 14, '#2c3350'], [-22, 22, 12, 12, 10, '#3a2c50'], [22, -22, 12, 12, 11, '#2c4450'], [-22, -22, 12, 12, 16, '#402c3c'],
+      [44, 21, 10, 14, 9, '#33334a'], [-44, -21, 10, 14, 12, '#2c3a4a'], [21, -44, 14, 10, 8, '#3c2c4a'], [-21, 44, 14, 10, 13, '#2c4040'],
+      [47, 47, 10, 10, 18, '#2a2f45'], [-47, -47, 10, 10, 15, '#352a45'], [47, -47, 10, 10, 10, '#2a3f45'], [-47, 47, 10, 10, 12, '#45352a']];
+    const tulisan = ['BELAJAR', 'IPA', 'MATEMATIKA', 'PINTAR', 'MABAR', 'EDU', 'ILMU', 'SEMANGAT'];
+    gedung.forEach(([x, z, w, d, h, warna], i) => {
+      const t = teksturJendela(warna, ['#ffd36b', '#7fe7ff', '#ffb3f0']);
+      t.repeat.set(Math.max(1, Math.round(Math.max(w, d) / 4)), Math.max(1, Math.round(h / 4)));
+      const sisi = new THREE.MeshStandardMaterial({ map: t, emissive: '#ffffff', emissiveMap: t, emissiveIntensity: 0.7, roughness: 0.7 });
+      const atap = mat('#1e2133');
+      kotak(x, z, w, h, d, warna, 0, [sisi, sisi, atap, atap, sisi, sisi]);
+      const n = neon(warnaNeon[i % 4]);
+      const fz = -Math.sign(z) * (d / 2 + 0.06);
+      for (const [cx, cz] of [[x - w / 2, z - d / 2], [x + w / 2, z - d / 2], [x - w / 2, z + d / 2], [x + w / 2, z + d / 2]]) hias(cx, h / 2, cz, 0.18, h, 0.18, null, n, false);
+      hias(x, h + 0.08, z, w + 0.2, 0.16, d + 0.2, null, n, false);
+      if (i < 8) papanNeon(tulisan[i], warnaNeon[(i + 1) % 4], x, Math.min(h - 2, 6), z + fz + (z > 0 ? -0.05 : 0.05), z > 0 ? Math.PI : 0, Math.min(w - 1, 8));
+    });
+    // Plaza tengah
+    kotak(0, 0, 8, 3, 8, '#4a5068');
+    for (const s of [-1, 1]) { kotak(s * 4.75, 0, 1.5, 2, 3, '#5b627d'); kotak(s * 6.25, 0, 1.5, 1, 3, '#5b627d'); }
+    const cincin = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.18, 10, 40), neon('#20e3ff'));
+    cincin.position.set(0, 6.5, 0); mapGroup.add(cincin);
+    const cincin2 = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.12, 10, 40), neon('#ff2bd6'));
+    cincin2.position.set(0, 6.5, 0); mapGroup.add(cincin2);
+    mapAnim.push((dt, t) => { cincin.rotation.y += dt * 1.2; cincin.rotation.x = Math.sin(t) * 0.4; cincin2.rotation.x += dt * 1.6; cincin2.position.y = 6.5 + Math.sin(t * 2) * 0.3; });
+    // Mobil & kontainer
+    mobil(-3, -30, false, '#e74c3c'); mobil(3, 30, false, '#3498db'); mobil(-30, 3, true, '#f1c40f'); mobil(30, -3, true, '#2ecc71'); mobil(-3, -50, false, '#9b59b6'); mobil(50, 3, true, '#ecf0f1');
+    for (const [x, z] of [[-34, 12], [34, -12]]) { kotak(x, z, 6, 2.6, 2.6, '#c0392b'); kotak(x, z + 3, 6, 2.6, 2.6, '#2980b9'); kotak(x, z + 1.5, 6, 2.6, 2.6, '#27ae60', 2.6); }
+    // Lampu jalan
+    for (const [x, z] of [[9, 9], [-9, 9], [9, -9], [-9, -9]]) {
+      kotak(x, z, 0.3, 6, 0.3, '#3d4258');
+      hias(x - Math.sign(x) * 0.8, 6, z, 1.6, 0.2, 0.3, '#3d4258');
+      const b = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX_GLOW, color: '#ffd9a0', depthWrite: false })); b.position.set(x - Math.sign(x) * 1.5, 5.8, z); b.scale.set(2.5, 2.5, 1); mapGroup.add(b);
+      const pl = new THREE.PointLight('#ffd9a0', 60, 26, 2); pl.position.copy(b.position); mapGroup.add(pl);
+    }
+    // Siluet kota di luar
+    for (let i = 0; i < 40; i++) { const a = (i / 40) * Math.PI * 2, r = 80 + Math.random() * 30, w = 8 + Math.random() * 10, h = 15 + Math.random() * 40; const t = teksturJendela('#151830', ['#ffd36b', '#7fe7ff']); t.repeat.set(2, Math.round(h / 6)); const m = new THREE.MeshBasicMaterial({ map: t }); const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, w), m); b.position.set(Math.cos(a) * r, h / 2, Math.sin(a) * r); mapGroup.add(b); }
+    bintang(700); piringan('#dfe6ff', [80, 120, -140], 28); piringan('#8fa0ff', [80, 120, -140], 70);
+  } },
+};
+
+function bangunMap(id) {
+  if (!MAPS[id]) id = 'taman';
+  if (mapGroup) { scene.remove(mapGroup); mapGroup.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); }
+  KOTAK.length = 0; blokMesh.length = 0; mapAnim.length = 0;
+  mapGroup = new THREE.Group(); scene.add(mapGroup);
+  mapAktif = id; SPAWN_MAP = MAPS[id].spawn;
+  MAPS[id].bangun();
+  if (AU.timer) AU.lagu = LAGU[id];
+}
+
+/* ================= KARAKTER ================= */
+function teksturWajah() {
+  const [c, g] = kanvas(128, 128);
+  g.fillStyle = '#f5cd30'; g.fillRect(0, 0, 128, 128);
+  g.fillStyle = '#1e1e1e';
+  g.beginPath(); g.ellipse(44, 52, 7, 12, 0, 0, 7); g.fill();
+  g.beginPath(); g.ellipse(84, 52, 7, 12, 0, 0, 7); g.fill();
+  g.fillStyle = '#fff'; g.beginPath(); g.arc(46, 47, 3, 0, 7); g.arc(86, 47, 3, 0, 7); g.fill();
+  g.lineWidth = 6; g.strokeStyle = '#1e1e1e'; g.lineCap = 'round';
+  g.beginPath(); g.arc(64, 72, 22, 0.2 * Math.PI, 0.8 * Math.PI); g.stroke();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const TEX_WAJAH = teksturWajah();
+const MAT_PISTOL = new THREE.MeshStandardMaterial({ color: '#2a2a2a', roughness: 0.4, metalness: 0.5 });
+
+function labelNama() {
+  const [c, g] = kanvas(256, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthWrite: false, sizeAttenuation: false, transparent: true }));
+  s.scale.set(0.27, 0.135, 1); s.renderOrder = 10; s.userData = { c, g, t };
+  return s;
+}
+function gambarLabel(s, nama, hp, warna) {
+  const { g, t } = s.userData;
+  g.clearRect(0, 0, 256, 128);
+  g.font = '700 30px Fredoka, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineWidth = 6; g.strokeStyle = 'rgba(0,0,0,.7)'; g.strokeText(nama, 128, 30);
+  g.fillStyle = '#fff'; g.fillText(nama, 128, 30);
+  // Bar HP besar dengan angka
+  const k = Math.max(0, Math.min(100, hp)) / 100;
+  const x = 28, y = 62, w = 200, h = 34;
+  g.fillStyle = 'rgba(0,0,0,.75)'; g.beginPath(); g.roundRect(x - 4, y - 4, w + 8, h + 8, 12); g.fill();
+  g.fillStyle = '#3b0d0d'; g.beginPath(); g.roundRect(x, y, w, h, 9); g.fill();
+  if (k > 0) {
+    const gr = g.createLinearGradient(0, y, 0, y + h);
+    const [a, b] = k > 0.5 ? ['#86efac', '#16a34a'] : k > 0.25 ? ['#fde68a', '#f59e0b'] : ['#fca5a5', '#dc2626'];
+    gr.addColorStop(0, a); gr.addColorStop(1, b);
+    g.fillStyle = gr; g.beginPath(); g.roundRect(x, y, Math.max(12, w * k), h, 9); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.roundRect(x + 4, y + 3, Math.max(4, w * k - 8), 8, 4); g.fill();
+  }
+  g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 2;
+  for (let i = 1; i < 4; i++) { g.beginPath(); g.moveTo(x + (w * i) / 4, y + 2); g.lineTo(x + (w * i) / 4, y + h - 2); g.stroke(); }
+  g.font = '700 24px Fredoka, sans-serif'; g.lineWidth = 5; g.strokeStyle = 'rgba(0,0,0,.8)';
+  g.strokeText(`❤ ${Math.max(0, Math.round(hp))}`, 128, y + h / 2 + 1); g.fillStyle = '#fff'; g.fillText(`❤ ${Math.max(0, Math.round(hp))}`, 128, y + h / 2 + 1);
+  g.fillStyle = warna; g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.arc(14, 30, 9, 0, 7); g.fill(); g.stroke();
+  t.needsUpdate = true;
+}
+
+function buatKarakter(warna, nama, denganLabel = true) {
+  const g = new THREE.Group();
+  const kulit = new THREE.MeshLambertMaterial({ color: '#f5cd30' });
+  const wajah = new THREE.MeshLambertMaterial({ map: TEX_WAJAH });
+  const baju = new THREE.MeshLambertMaterial({ color: warna });
+  const celana = new THREE.MeshLambertMaterial({ color: '#2b4a8b' });
+  const box = (w, h, d, m) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); me.castShadow = true; return me; };
+  const kaki = (x) => { const p = new THREE.Group(); const k = box(0.48, 1, 0.5, celana); k.position.y = -0.5; p.add(k); p.position.set(x, 1, 0); g.add(p); return p; };
+  const kakiL = kaki(-0.25), kakiR = kaki(0.25);
+  const badan = box(1, 1, 0.5, baju); badan.position.y = 1.5; g.add(badan);
+  const lengan = (x) => { const p = new THREE.Group(); const l = box(0.45, 1, 0.45, kulit); l.position.y = -0.45; p.add(l); p.position.set(x, 1.95, 0); g.add(p); return p; };
+  const lenganL = lengan(-0.73), lenganR = lengan(0.73);
+  const pistol = box(0.22, 0.75, 0.3, MAT_PISTOL); pistol.position.set(0, -1.05, 0.05); lenganR.add(pistol);
+  const laras = box(0.12, 0.3, 0.12, MAT_PISTOL); laras.position.set(0, -1.5, 0.05); lenganR.add(laras);
+  const ujung = new THREE.Object3D(); ujung.position.set(0, -1.7, 0.05); lenganR.add(ujung);
+  lenganR.rotation.x = Math.PI / 2;
+  const kepala = box(0.8, 0.8, 0.8, [kulit, kulit, kulit, kulit, kulit, wajah]); kepala.position.y = 2.4; g.add(kepala);
+  let label = null;
+  if (denganLabel) { label = labelNama(); label.position.y = 3.5; g.add(label); gambarLabel(label, nama, 100, warna); }
+  g.rotation.order = 'YXZ';
+  g.userData = { kakiL, kakiR, lenganL, lenganR, ujung, fase: 0, flash: 0, mats: [kulit, baju, celana], label };
+  scene.add(g);
+  return g;
+}
+function animasiJalan(g, kecepatan, dt) {
+  const u = g.userData;
+  if (kecepatan > 0.5) u.fase += dt * (kecepatan > 12 ? 15 : 11); else u.fase *= 0.85;
+  const a = Math.sin(u.fase) * Math.min(1, kecepatan / 8) * 0.85;
+  u.kakiL.rotation.x = a; u.kakiR.rotation.x = -a; u.lenganL.rotation.x = -a;
+}
+function posePingsan(g, mati) { g.rotation.x = mati ? -Math.PI / 2 : 0; }
+function setFlash(g) { g.userData.flash = 0.18; }
+function updateFlash(g, dt) {
+  const u = g.userData; if (u.flash <= 0) return;
+  u.flash -= dt; const k = Math.max(0, u.flash / 0.18);
+  for (const m of u.mats) m.emissive.setRGB(k * 1.2, k * 0.25, k * 0.25);
+}
+function hapusObjek(o) { scene.remove(o); o.traverse((c) => { if (c.geometry) c.geometry.dispose(); }); }
+
+/* ================= EFEK ================= */
+const efek = [];
+const GEO_SILINDER = new THREE.CylinderGeometry(1, 1, 1, 6, 1, true); GEO_SILINDER.rotateX(Math.PI / 2);
+const GEO_PARTIKEL = new THREE.BoxGeometry(0.16, 0.16, 0.16);
+function tambahEfek(obj, life, update) { scene.add(obj); efek.push({ obj, life, max: life, update }); }
+function updateEfek(dt) {
+  if (window.__beku) return;
+  for (let i = efek.length - 1; i >= 0; i--) {
+    const e = efek[i]; e.life -= dt;
+    if (e.life <= 0) { scene.remove(e.obj); e.obj.traverse((o) => { if (o.material) o.material.dispose(); }); efek.splice(i, 1); continue; }
+    if (e.update) e.update(e, dt);
+  }
+}
+const aditif = (warna, op = 1) => new THREE.MeshBasicMaterial({ color: warna, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false });
+function cahayaSprite(warna, skala) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX_GLOW, color: warna, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); s.scale.set(skala, skala, 1); return s; }
+
+function peluru(dari, ke, hue) {
+  const warna = new THREE.Color().setHSL(hue, 1, 0.55);
+  const len = dari.distanceTo(ke);
+  const g = new THREE.Group();
+  const luar = new THREE.Mesh(GEO_SILINDER, aditif(warna, 0.9)); luar.scale.set(0.16, 0.16, len);
+  const inti = new THREE.Mesh(GEO_SILINDER, aditif('#ffffff', 1)); inti.scale.set(0.05, 0.05, len);
+  g.add(luar, inti); g.position.copy(dari).lerp(ke, 0.5); g.lookAt(ke);
+  tambahEfek(g, 0.22, (e) => { const k = e.life / e.max; luar.material.opacity = 0.9 * k; inti.material.opacity = k; luar.scale.x = luar.scale.y = 0.16 * (0.4 + k); });
+  const bola = cahayaSprite(warna, 0.9); bola.position.copy(dari);
+  tambahEfek(bola, 0.09, (e) => bola.position.lerpVectors(dari, ke, 1 - e.life / e.max));
+}
+function kilatMoncong(pos, hue) {
+  const warna = new THREE.Color().setHSL(hue, 1, 0.6);
+  const s = cahayaSprite(warna, 1.6); s.position.copy(pos);
+  const b = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX_BINTANG, color: '#ffffff', blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+  b.position.copy(pos); b.scale.set(1.2, 1.2, 1); b.material.rotation = Math.random() * 3;
+  tambahEfek(s, 0.07, (e) => { s.scale.setScalar(1.6 * (e.life / e.max) + 0.4); });
+  tambahEfek(b, 0.06, (e) => { b.material.opacity = e.life / e.max; });
+  muzzleLight.color.copy(warna); muzzleLight.position.copy(pos); muzzleLight.intensity = 25;
+}
+function ledakan(titik, hue, n = 10, kuat = 1) {
+  for (let i = 0; i < n; i++) {
+    const m = new THREE.Mesh(GEO_PARTIKEL, new THREE.MeshBasicMaterial({ color: new THREE.Color().setHSL((hue + Math.random() * 0.2) % 1, 1, 0.6), transparent: true }));
+    m.position.copy(titik);
+    const v = new THREE.Vector3(Math.random() - 0.5, Math.random() * 0.9, Math.random() - 0.5).normalize().multiplyScalar((3 + Math.random() * 5) * kuat);
+    tambahEfek(m, 0.45 + Math.random() * 0.35, (e, dt) => { v.y -= 16 * dt; m.position.addScaledVector(v, dt); m.rotation.x += dt * 12; m.rotation.y += dt * 9; const k = e.life / e.max; m.scale.setScalar(k * 1.3); m.material.opacity = k; });
+  }
+  const r = cahayaSprite(new THREE.Color().setHSL(hue, 1, 0.65), 0.4); r.position.copy(titik);
+  tambahEfek(r, 0.22, (e) => { const k = 1 - e.life / e.max; r.scale.setScalar(0.4 + k * 2.6 * kuat); r.material.opacity = 1 - k; });
+}
+const cacheAngka = {};
+function angkaDamage(titik, teks, warna = '#ffe14d') {
+  let tex = cacheAngka[teks + warna];
+  if (!tex) {
+    const [c, g] = kanvas(128, 64);
+    g.font = '700 46px Fredoka, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.lineWidth = 7; g.strokeStyle = '#000'; g.strokeText(teks, 64, 34); g.fillStyle = warna; g.fillText(teks, 64, 34);
+    tex = cacheAngka[teks + warna] = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  }
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+  s.renderOrder = 20; s.position.copy(titik).add(new THREE.Vector3((Math.random() - 0.5) * 0.6, 0.4, 0)); s.scale.set(1.4, 0.7, 1);
+  tambahEfek(s, 0.8, (e, dt) => { s.position.y += dt * 1.8; const k = e.life / e.max; s.material.opacity = Math.min(1, k * 2); const sc = 1 + (1 - k) * 0.3; s.scale.set(1.4 * sc, 0.7 * sc, 1); });
+}
+function konfeti() {
+  const pusat = camera.position.clone().add(camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(6)).add(new THREE.Vector3(0, 3, 0));
+  for (let i = 0; i < 4; i++) setTimeout(() => ledakan(pusat.clone().add(new THREE.Vector3((Math.random() - 0.5) * 6, Math.random() * 2, (Math.random() - 0.5) * 6)), Math.random(), 28, 1.8), i * 250);
+}
+
+/* ================= STATE ================= */
+let main = false, mode = null, sesi = 0, isHost = false;
+const aku = { pos: new THREE.Vector3(), velY: 0, diTanah: true, yaw: 0, pitch: 0, hp: 100, ammo: MAX_AMMO, mati: false, group: null,
+  skor: 0, benar: 0, ronde: 0, nama: 'Pemain', warna: WARNA[0], topik: 'campur', stamina: 100, capek: false, lari: false };
+const lain = {};
+const tombol = {};
+let terkunci = false, kuisBuka = false, mouseTekan = false, tembakTerakhir = 0, blokirSoal = 0, guncang = 0;
+let mapPilihan = MAPS[ls.get('map', 'taman')] ? ls.get('map', 'taman') : 'taman';
+let topikPilihan = NAMA_TOPIK[ls.get('topik', 'campur')] ? ls.get('topik', 'campur') : 'campur';
+
+/* ================= JARINGAN (room Claude) ================= */
+let roomApi = null, grup = null, myPeer = null, topikTetap = false, mapTetap = false, menangTampil = false, kodeRoom = '';
+let net = { h: {}, tn: 0, tt: null, hu: 0, d: 0, k: null };
+let seen = {};
+
+// ====== Jaringan mabar via PeerJS (WebRTC, tanpa server sendiri) ======
+// Pemain pertama di sebuah kode room menjadi "host" (ID peer = blok-tembak-edu-<kode>).
+// Pemain lain tersambung ke host, host meneruskan posisi semua pemain ke semua orang.
+// Kalau host keluar, salah satu pemain otomatis menjadi host baru.
+const PESAN_OFFLINE = 'Library mabar gagal dimuat. Cek koneksi internet lalu muat ulang halaman. Kamu tetap bisa latihan lawan bot.';
+const ICE = { iceServers: [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:global.stun.twilio.com:3478' },
+  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+] };
+function buatRoomPeer() {
+  if (typeof window.Peer !== 'function') return null;
+  const opsiPeer = () => Object.assign({ config: ICE, debug: 0 }, window.__PEER_OPTS || {});
+  return {
+    join(name) {
+      return new Promise((resolve, reject) => {
+        const hostId = 'blok-tembak-edu-' + name;
+        let peer = null, mode = null, myId = null, hostConn = null, tutup = false, terhubung = false;
+        const conns = {}, connL = [], terakhirData = {};
+        let dataHostTerakhir = 0;
+        let saya = {}, state = {};
+        const setConn = (v) => { if (terhubung !== v) { terhubung = v; connL.forEach((f) => f(v)); } };
+        const tunggu = (ms) => new Promise((r) => setTimeout(r, ms));
+
+        function jadiHost() {
+          return new Promise((res, rej) => {
+            const p = new window.Peer(hostId, opsiPeer());
+            let siap = false;
+            p.on('open', (id) => { siap = true; peer = p; mode = 'host'; myId = id; hostConn = null; state = {}; setConn(true); res(); });
+            p.on('error', (e) => { if (!siap) { try { p.destroy(); } catch (er) {} rej(e); } });
+            p.on('disconnected', () => { if (!tutup && peer === p) { try { p.reconnect(); } catch (er) {} } });
+            p.on('connection', (c) => {
+              c.on('open', () => { conns[c.peer] = c; });
+              c.on('data', (d) => { terakhirData[c.peer] = Date.now(); if (d && d.t === 'p' && d.p && typeof d.p === 'object') state[c.peer] = d.p; });
+              const hapus = () => { try { c.close(); } catch (e) {} delete conns[c.peer]; delete state[c.peer]; delete terakhirData[c.peer]; };
+              c._hapus = hapus;
+              c.on('close', hapus); c.on('error', hapus);
+            });
+          });
+        }
+        function jadiTamu() {
+          return new Promise((res, rej) => {
+            const p = new window.Peer(opsiPeer());
+            let selesai = false;
+            const gagal = (e) => { if (selesai) return; selesai = true; try { p.destroy(); } catch (er) {} rej(e); };
+            const to = setTimeout(() => gagal(new Error('timeout')), 12000);
+            p.on('error', gagal);
+            p.on('open', (id) => {
+              const c = p.connect(hostId, { serialization: 'json', reliable: true });
+              c.on('open', () => {
+                if (selesai) return; selesai = true; clearTimeout(to);
+                peer = p; mode = 'tamu'; myId = id; hostConn = c; dataHostTerakhir = Date.now(); setConn(true); res();
+              });
+              c.on('data', (d) => { dataHostTerakhir = Date.now(); if (d && d.t === 's' && d.s && typeof d.s === 'object') state = d.s; });
+              const putus = () => { if (!tutup && peer === p && mode === 'tamu') { setConn(false); state = {}; pindahHost(); } };
+              c._putus = putus;
+              c.on('close', putus); c.on('error', putus);
+            });
+          });
+        }
+        async function hubungkan() {
+          let errTerakhir = null;
+          for (let i = 0; i < 8 && !tutup; i++) {
+            try { await jadiHost(); return; } catch (e) { errTerakhir = e; if (e && e.type && e.type !== 'unavailable-id') { await tunggu(800); continue; } }
+            try { await jadiTamu(); return; } catch (e) { errTerakhir = e; }
+            await tunggu(800 + Math.random() * 900);
+          }
+          throw errTerakhir || new Error('gagal');
+        }
+        async function pindahHost() {
+          const lama = peer; peer = null; mode = null;
+          try { lama && lama.destroy(); } catch (e) {}
+          await tunggu(400 + Math.random() * 1600);
+          if (tutup) return;
+          try { await hubungkan(); } catch (e) { setConn(false); }
+        }
+
+        const iv = setInterval(() => {
+          if (tutup || !peer) return;
+          const kini = Date.now();
+          if (mode === 'host') {
+            for (const [id, c] of Object.entries(conns)) if (kini - (terakhirData[id] || kini) > 5000 && c._hapus) c._hapus();
+            const s = Object.assign({}, state); s[myId] = saya;
+            for (const c of Object.values(conns)) if (c.open) { try { c.send({ t: 's', s }); } catch (e) {} }
+          } else if (mode === 'tamu' && hostConn) {
+            if (kini - dataHostTerakhir > 4000) { if (hostConn._putus) hostConn._putus(); return; }
+            if (hostConn.open) { try { hostConn.send({ t: 'p', p: saya }); } catch (e) {} }
+          }
+        }, 50);
+
+        const api = {
+          name,
+          peers() {
+            const arr = [{ peer: myId || 'aku', sameTab: true, isMe: true, presence: saya }];
+            for (const [id, p] of Object.entries(state)) if (id !== myId) arr.push({ peer: id, sameTab: false, isMe: false, presence: p });
+            return arr;
+          },
+          presence(patch) {
+            const baru = Object.assign({}, saya, patch);
+            for (const k of Object.keys(patch)) if (patch[k] === null) delete baru[k];
+            saya = baru; return Promise.resolve();
+          },
+          connected: () => terhubung,
+          onConnection(f) { connL.push(f); setTimeout(() => f(terhubung), 0); return () => {}; },
+          onPeers() { return () => {}; },
+          emit: () => Promise.resolve(),
+          on: () => () => {},
+          leave() { tutup = true; clearInterval(iv); try { peer && peer.destroy(); } catch (e) {} peer = null; return Promise.resolve(); },
+        };
+        hubungkan().then(() => resolve(api)).catch((e) => { api.leave(); reject(e); });
+      });
+    },
+  };
+}
+const pakaiRoom = Promise.resolve(buatRoomPeer());
+
+pakaiRoom.then((r) => {
+  roomApi = r;
+  const s = $('statusNet');
+  if (r) { s.textContent = '● Server room siap. Buat room atau gabung pakai kode.'; s.className = 'ok'; }
+  else s.textContent = PESAN_OFFLINE;
+}).catch(() => { $('statusNet').textContent = 'Mode online tidak tersedia. Kamu tetap bisa latihan lawan bot.'; });
+
+function acakKode() { const c = 'abcdefghjkmnpqrstuvwxyz23456789'; let s = ''; for (let i = 0; i < 5; i++) s += c[Math.floor(Math.random() * c.length)]; return s; }
+
+async function masukOnline(kode, buat) {
+  if (!roomApi) { $('error').textContent = 'Mode online belum tersambung. Tunggu sebentar, atau coba latihan dulu.'; return; }
+  $('error').textContent = 'Menyambung ke room...';
+  try { grup = await roomApi.join('bt-' + kode); }
+  catch (e) { grup = null; $('error').textContent = 'Gagal masuk room. Coba lagi.'; return; }
+  await new Promise((r) => setTimeout(r, 1000));
+  const orang = grup.peers().filter((p) => !p.sameTab && p.presence && typeof p.presence.x === 'number');
+  if (buat && orang.length > 0) { grup.leave(); grup = null; return masukOnline(acakKode(), true); }
+  if (orang.length >= MAX_PEMAIN) { grup.leave(); grup = null; $('error').textContent = `Room penuh (maksimal ${MAX_PEMAIN} pemain).`; return; }
+  const terpakai = orang.map((p) => p.presence.w);
+  aku.warna = WARNA.find((w) => !terpakai.includes(w)) || WARNA[Math.floor(Math.random() * WARNA.length)];
+  const host = orang.find((p) => MAPS[p.presence.mp]);
+  if (buat) { aku.topik = topikPilihan; topikTetap = true; mapTetap = true; bangunMap(mapPilihan); }
+  else if (host) { aku.topik = NAMA_TOPIK[host.presence.t] ? host.presence.t : 'campur'; topikTetap = true; mapTetap = true; bangunMap(host.presence.mp); }
+  else { aku.topik = 'campur'; topikTetap = false; mapTetap = false; }
+  aku.ronde = Math.max(0, ...orang.map((p) => p.presence.r | 0));
+  isHost = buat; mode = 'online'; kodeRoom = kode.toUpperCase();
+  mulaiGame();
+  grup.onConnection((c) => { if (!c && main) tampilPetunjuk('Koneksi tersendat...', 2000); });
+  if (buat) tampilPetunjuk(`Room dibuat! Bagikan kode ${kodeRoom} ke temanmu`, 6000);
+}
+
+function kirimPresence() {
+  if (!grup) return;
+  const f = (v) => Math.round(v * 100) / 100;
+  grup.presence({
+    n: aku.nama, w: aku.warna, t: aku.topik, mp: mapTetap ? mapAktif : null,
+    x: f(aku.pos.x), y: f(aku.pos.y), z: f(aku.pos.z), ry: f(aku.yaw),
+    hp: aku.hp, m: aku.mati ? 1 : 0, s: aku.skor, b: aku.benar, r: aku.ronde,
+    h: net.h, tn: net.tn, tt: net.tt, hu: net.hu, d: net.d, k: net.k,
+  }).catch(() => {});
+}
+
+function volumeJarak(p) { return Math.max(0.12, 1 - aku.pos.distanceTo(p) / 70); }
+
+function prosesPeers() {
+  if (!grup) return;
+  const ps = grup.peers();
+  for (const p of ps) if (p.sameTab) myPeer = p.peer;
+  const ada = new Set();
+  for (const p of ps) {
+    if (p.sameTab) continue;
+    const pr = p.presence;
+    if (!pr || typeof pr.x !== 'number') continue;
+    ada.add(p.peer);
+    const h = (pr.h && myPeer && Number(pr.h[myPeer])) || 0;
+    let o = lain[p.peer];
+    if (!o) {
+      o = tambahPemain(p.peer, String(pr.n || 'Pemain').slice(0, 14), WARNA.includes(pr.w) ? pr.w : '#888888', pr);
+      seen[p.peer] = { hit: h, d: pr.d | 0, tn: pr.tn | 0 };
+      tambahFeed(`👋 ${o.nama} bergabung`); sfx('gabung');
+    }
+    const sv = seen[p.peer];
+    o.target.set(pr.x, pr.y || 0, pr.z || 0); o.ry = pr.ry || 0;
+    o.skor = pr.s | 0; o.benar = pr.b | 0; o.ronde = pr.r | 0;
+    const mati = !!pr.m;
+    const hpBaru = typeof pr.hp === 'number' ? pr.hp : 100;
+    if (hpBaru < o.hp && !mati) { setFlash(o.group); ledakan(o.group.position.clone().add(new THREE.Vector3(0, 1.7, 0)), 0.02, 6, 0.6); }
+    if (hpBaru !== o.hp) { o.hp = hpBaru; gambarLabel(o.group.userData.label, o.nama, Math.max(0, o.hp), o.warna); }
+    if (o.mati !== mati) { o.mati = mati; posePingsan(o.group, mati); }
+
+    if (!mapTetap && MAPS[pr.mp]) {
+      mapTetap = true;
+      if (pr.mp !== mapAktif) { bangunMap(pr.mp); taruhAku(); }
+      updateInfoRoom();
+    }
+    if (!topikTetap && NAMA_TOPIK[pr.t]) { aku.topik = pr.t; topikTetap = true; updateInfoRoom(); }
+
+    if (h > sv.hit) {
+      const n = h - sv.hit; sv.hit = h;
+      if (!aku.mati && o.ronde === aku.ronde) kenaDamage(n * DAMAGE, p.peer, o.nama);
+    } else if (h < sv.hit) sv.hit = h;
+
+    if ((pr.tn | 0) > sv.tn) {
+      sv.tn = pr.tn | 0;
+      if (Array.isArray(pr.tt) && pr.tt.length === 3) {
+        const ke = new THREE.Vector3(Number(pr.tt[0]) || 0, Number(pr.tt[1]) || 0, Number(pr.tt[2]) || 0);
+        const dari = o.group.userData.ujung.getWorldPosition(new THREE.Vector3());
+        const hue = Number(pr.hu) || 0;
+        peluru(dari, ke, hue); kilatMoncong(dari, hue); ledakan(ke, hue, 7, 0.8);
+        sfx('tembak', volumeJarak(dari) * 0.8);
+      }
+    }
+
+    if ((pr.d | 0) > sv.d) {
+      sv.d = pr.d | 0;
+      const pembunuh = pr.k === myPeer ? aku.nama : (lain[pr.k] ? lain[pr.k].nama : 'seseorang');
+      tambahFeed(`💥 ${pembunuh} menumbangkan ${o.nama}`);
+      sfx('tumbang', volumeJarak(o.group.position));
+      if (pr.k === myPeer && o.ronde === aku.ronde) { aku.skor++; sfx('kill'); tampilPetunjuk(`🎯 Kamu menumbangkan ${o.nama}!`); cekMenang(); }
+    }
+
+    if (o.ronde > aku.ronde) rondeBaru(o.ronde);
+    else if (o.ronde === aku.ronde && o.skor >= TARGET_KILL) tampilMenang(o.nama, false);
+  }
+  for (const id of Object.keys(lain)) if (!lain[id].bot && !ada.has(id)) { tambahFeed(`🚪 ${lain[id].nama} keluar`); hapusPemain(id); }
+  const tunggu = $('tunggu');
+  if (ada.size === 0) {
+    tunggu.textContent = isHost || mapTetap ? `⏳ Menunggu teman bergabung... bagikan kode ${kodeRoom}` : `⏳ Belum ada pemain di room ${kodeRoom}. Cek kodenya, atau tunggu host masuk.`;
+    tunggu.classList.remove('hidden');
+  } else tunggu.classList.add('hidden');
+}
+
+/* ================= LATIHAN (bot) ================= */
+const NAMA_BOT = ['Bot Budi', 'Bot Sari', 'Bot Joko', 'Bot Rina', 'Bot Dika'];
+function mulaiLatihan() {
+  mode = 'latihan'; isHost = true; kodeRoom = 'LATIHAN';
+  aku.warna = WARNA[0]; aku.topik = topikPilihan; mapTetap = true;
+  bangunMap(mapPilihan);
+  mulaiGame();
+  NAMA_BOT.forEach((n, i) => {
+    const [x, z] = spawnAman();
+    const o = tambahPemain('bot' + i, n, WARNA[i + 1], { x, y: 0, z, ry: 0 });
+    Object.assign(o, { bot: true, hp: 100, arah: Math.random() * 6.28, gantiArah: 0, tembakT: 2 + Math.random() * 3 });
+  });
+}
+const rayBot = new THREE.Raycaster();
+function updateBot(dt) {
+  for (const o of Object.values(lain)) {
+    if (!o.bot || o.mati) continue;
+    o.gantiArah -= dt;
+    if (o.gantiArah <= 0) { o.arah = Math.random() * Math.PI * 2; o.gantiArah = 1 + Math.random() * 2.5; }
+    const nx = o.target.x - Math.sin(o.arah) * 5 * dt, nz = o.target.z - Math.cos(o.arah) * 5 * dt;
+    if (!tabrak(nx, 0, nz) && Math.abs(nx) < 58 && Math.abs(nz) < 58) { o.target.x = nx; o.target.z = nz; } else o.gantiArah = 0;
+    o.ry = o.arah;
+    o.tembakT -= dt;
+    const jarak = o.target.distanceTo(aku.pos);
+    if (o.tembakT <= 0 && !aku.mati && jarak < 38 && !menangTampil) {
+      o.tembakT = 1.4 + Math.random() * 1.8;
+      const mata = o.target.clone().add(new THREE.Vector3(0, 2.4, 0));
+      const tujuan = aku.pos.clone().add(new THREE.Vector3(0, 1.6, 0));
+      const arah = tujuan.clone().sub(mata).normalize();
+      rayBot.set(mata, arah); rayBot.far = jarak;
+      if (rayBot.intersectObjects(blokMesh, false).length) continue;
+      o.ry = Math.atan2(-arah.x, -arah.z); o.group.rotation.y = o.ry;
+      const kena = Math.random() < 0.3;
+      const ke = kena ? tujuan : tujuan.clone().add(new THREE.Vector3((Math.random() - 0.5) * 4, Math.random() * 2, (Math.random() - 0.5) * 4));
+      const dari = o.group.userData.ujung.getWorldPosition(new THREE.Vector3());
+      peluru(dari, ke, 0.0); kilatMoncong(dari, 0.0); ledakan(ke, 0.02, 5, 0.6);
+      sfx('tembak', volumeJarak(dari) * 0.7);
+      if (kena) kenaDamage(10, o.id, o.nama);
+    }
+  }
+}
+function kenaBot(o, titik) {
+  o.hp -= DAMAGE; setFlash(o.group); gambarLabel(o.group.userData.label, o.nama, Math.max(0, o.hp), o.warna);
+  if (o.hp <= 0) {
+    o.mati = true; posePingsan(o.group, true);
+    aku.skor++; sfx('kill'); sfx('tumbang', 0.8);
+    tambahFeed(`💥 ${aku.nama} menumbangkan ${o.nama}`); tampilPetunjuk(`🎯 Kamu menumbangkan ${o.nama}!`); cekMenang();
+    const s = sesi;
+    setTimeout(() => {
+      if (s !== sesi || !lain[o.id]) return;
+      const [x, z] = spawnAman(); o.target.set(x, 0, z); o.group.position.copy(o.target);
+      o.hp = 100; o.mati = false; posePingsan(o.group, false); gambarLabel(o.group.userData.label, o.nama, 100, o.warna);
+    }, 3000);
+  }
+}
+
+/* ================= GAME ================= */
+function tambahPemain(id, nama, warna, p) {
+  const group = buatKarakter(warna, nama);
+  group.position.set(p.x, p.y || 0, p.z);
+  group.traverse((o) => { o.userData.pid = id; });
+  lain[id] = { id, group, target: new THREE.Vector3(p.x, p.y || 0, p.z), ry: p.ry || 0, nama, warna, mati: false, hp: 100, skor: 0, benar: 0, ronde: 0 };
+  return lain[id];
+}
+function hapusPemain(id) { const o = lain[id]; if (!o) return; hapusObjek(o.group); delete lain[id]; delete seen[id]; }
+
+function spawnAman() {
+  const list = [...SPAWN_MAP].sort(() => Math.random() - 0.5);
+  for (const [x, z] of list) if (!tabrak(x, 0, z)) return [x, z];
+  for (let i = 0; i < 300; i++) { const x = (Math.random() - 0.5) * 100, z = (Math.random() - 0.5) * 100; if (!tabrak(x, 0, z)) return [x, z]; }
+  return [0, -40];
+}
+function taruhAku() {
+  const [x, z] = spawnAman();
+  aku.pos.set(x, 0, z); aku.velY = 0; aku.yaw = Math.atan2(x, z); aku.pitch = -0.05;
+  aku.hp = 100; aku.ammo = MAX_AMMO; aku.mati = false; aku.stamina = 100; aku.capek = false;
+  if (aku.group) posePingsan(aku.group, false);
+  $('layarMati').classList.add('hidden');
+  updateHud();
+}
+function updateInfoRoom() {
+  $('kodeRoom').textContent = kodeRoom;
+  $('btnSalin').classList.toggle('hidden', mode !== 'online');
+  $('mapRoom').textContent = mapTetap ? `${MAP_INFO[mapAktif].em} ${MAP_INFO[mapAktif].nama}` : '🗺️ menunggu host';
+  $('topikRoom').textContent = '📚 ' + NAMA_TOPIK[aku.topik];
+}
+function mulaiGame() {
+  sesi++;
+  aku.nama = ambilNama();
+  aku.skor = 0; aku.benar = 0; menangTampil = false;
+  aku.group = buatKarakter(aku.warna, aku.nama, false);
+  taruhAku();
+  updateInfoRoom();
+  $('targetTeks').textContent = `Target ${TARGET_KILL} kill`;
+  main = true; document.body.classList.add('main');
+  $('lobby').classList.add('hidden'); $('hud').classList.remove('hidden'); $('error').textContent = '';
+  if (isMobile) { terkunci = true; $('mobile').classList.remove('hidden'); try { document.documentElement.requestFullscreen?.().catch(() => {}); } catch (e) {} }
+  else $('klikMain').classList.remove('hidden');
+  musikMulai(mapAktif); renderSkor();
+}
+async function keluarHome() {
+  $('konfirmasi').classList.add('hidden');
+  sesi++;
+  if (grup) { const g = grup; grup = null; try { await g.leave(); } catch (e) {} }
+  for (const id of Object.keys(lain)) hapusPemain(id);
+  if (aku.group) { hapusObjek(aku.group); aku.group = null; }
+  main = false; mode = null; myPeer = null; topikTetap = false; mapTetap = false; menangTampil = false; isHost = false;
+  net = { h: {}, tn: 0, tt: null, hu: 0, d: 0, k: null }; seen = {};
+  aku.ronde = 0; aku.skor = 0; aku.benar = 0;
+  if (kuisBuka) tutupKuis();
+  try { document.exitPointerLock(); } catch (e) {}
+  try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
+  terkunci = false; mouseTekan = false; joyReset(); sprintMobile = false; $('mbSprint').classList.remove('aktif');
+  document.body.classList.remove('main');
+  for (const id of ['hud', 'klikMain', 'layarMati', 'layarMenang', 'mobile']) $(id).classList.add('hidden');
+  $('lobby').classList.remove('hidden');
+  $('feed').innerHTML = '';
+  bangunMap(mapPilihan);
+}
+
+function kenaDamage(dmg, olehId, olehNama) {
+  if (aku.mati || menangTampil) return;
+  aku.hp = Math.max(0, aku.hp - dmg);
+  flashMerah(); guncang = 0.35; setFlash(aku.group); sfx('sakit'); updateHud();
+  if (aku.hp <= 0) {
+    aku.mati = true; net.d++; net.k = olehId;
+    posePingsan(aku.group, true); sfx('tumbang');
+    if (kuisBuka) tutupKuis();
+    tambahFeed(`💥 ${olehNama} menumbangkan ${aku.nama}`);
+    $('matiT1').textContent = `Kamu ditumbangkan oleh ${olehNama}!`; $('layarMati').classList.remove('hidden');
+    const s = sesi;
+    setTimeout(() => { if (s === sesi && aku.mati) taruhAku(); }, 3000);
+  }
+}
+function cekMenang() { if (aku.skor >= TARGET_KILL) tampilMenang(aku.nama, true); }
+function tampilMenang(nama, akuMenang) {
+  if (menangTampil) return;
+  menangTampil = true; mouseTekan = false;
+  $('menangT1').textContent = akuMenang ? '🏆 KAMU MENANG!' : `🏆 ${nama} MENANG!`;
+  $('layarMenang').classList.remove('hidden');
+  sfx('menang'); konfeti();
+  const r = aku.ronde + 1, s = sesi;
+  setTimeout(() => { if (s === sesi) rondeBaru(r); }, akuMenang ? 8000 : 10000);
+}
+function rondeBaru(r) {
+  if (r <= aku.ronde) return;
+  aku.ronde = r; aku.skor = 0; aku.benar = 0; menangTampil = false;
+  $('layarMenang').classList.add('hidden');
+  for (const o of Object.values(lain)) if (o.bot) { o.hp = 100; o.mati = false; posePingsan(o.group, false); gambarLabel(o.group.userData.label, o.nama, 100, o.warna); }
+  taruhAku(); tampilPetunjuk('🔔 Ronde baru dimulai!');
+}
+
+/* ================= LOBBY ================= */
+$('namaInput').value = ls.get('nama', '');
+function ambilNama() { const n = $('namaInput').value.trim().slice(0, 14) || 'Pemain'; ls.set('nama', n); return n; }
+function renderLobby() {
+  const mp = $('mapPilih'); mp.innerHTML = '';
+  for (const [id, info] of Object.entries(MAP_INFO)) {
+    const b = document.createElement('button'); b.className = 'mapCard' + (id === mapPilihan ? ' aktif' : ''); b.style.background = info.grad;
+    const em = document.createElement('div'); em.className = 'em'; em.textContent = info.em;
+    const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = info.nama;
+    const sm = document.createElement('small'); sm.textContent = info.desk; nm.appendChild(sm);
+    b.append(em, nm);
+    b.onclick = () => { mapPilihan = id; ls.set('map', id); renderLobby(); if (!main) bangunMap(id); sfx('klik'); };
+    mp.appendChild(b);
+  }
+  const tp = $('topikPilih'); tp.innerHTML = '';
+  for (const [id, label] of TOPIK_CHIP) {
+    const b = document.createElement('button'); b.className = 'chip2' + (id === topikPilihan ? ' aktif' : ''); b.textContent = label;
+    b.onclick = () => { topikPilihan = id; ls.set('topik', id); renderLobby(); sfx('klik'); };
+    tp.appendChild(b);
+  }
+}
+renderLobby();
+document.querySelectorAll('.tab').forEach((t) => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('aktif', x === t));
+  $('tabBuat').classList.toggle('hidden', t.dataset.tab !== 'buat');
+  $('tabGabung').classList.toggle('hidden', t.dataset.tab !== 'gabung');
+  $('error').textContent = ''; sfx('klik');
+});
+$('btnBuat').onclick = () => masukOnline(acakKode(), true);
+$('btnGabung').onclick = () => {
+  const kode = $('kodeInput').value.trim().toLowerCase();
+  if (!/^[a-z0-9]{5}$/.test(kode)) { $('error').textContent = 'Kode room harus 5 karakter (huruf/angka).'; return; }
+  masukOnline(kode, false);
+};
+$('btnLatihan').onclick = mulaiLatihan;
+$('kodeInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnGabung').click(); });
+$('btnSuaraLobby').onclick = () => setMusik(!AU.musikOn);
+$('btnMusik').onclick = () => setMusik(!AU.musikOn);
+$('btnSfx').onclick = () => setSfx(!AU.sfxOn);
+$('btnSalin').onclick = () => {
+  const ok = () => tampilPetunjuk(`📋 Kode ${kodeRoom} disalin`);
+  try { navigator.clipboard.writeText(kodeRoom).then(ok, () => tampilPetunjuk(`Kode room: ${kodeRoom}`, 4000)); } catch (e) { tampilPetunjuk(`Kode room: ${kodeRoom}`, 4000); }
+};
+$('btnHome').onclick = () => {
+  try { document.exitPointerLock(); } catch (e) {}
+  mouseTekan = false; $('klikMain').classList.add('hidden'); $('konfirmasi').classList.remove('hidden'); sfx('klik');
+};
+$('btnBatalKeluar').onclick = () => { $('konfirmasi').classList.add('hidden'); if (!isMobile && !terkunci && main) $('klikMain').classList.remove('hidden'); };
+$('btnYaKeluar').onclick = keluarHome;
+tombolSuara();
+
+/* ================= HUD ================= */
+const pips = $('pips'); for (let i = 0; i < MAX_AMMO; i++) pips.appendChild(document.createElement('i'));
+function updateHud() {
+  const hp = Math.max(0, aku.hp);
+  $('hpIsi').style.width = hp + '%';
+  $('hpIsi').style.background = hp > 50 ? 'linear-gradient(#6ff59a,#21b35b)' : hp > 25 ? 'linear-gradient(#ffd25e,#f39c12)' : 'linear-gradient(#ff7b7b,#e74c3c)';
+  $('hpTeks').textContent = hp + ' HP';
+  $('ammoAngka').innerHTML = `${aku.ammo}<small>/${MAX_AMMO}</small>`;
+  [...pips.children].forEach((p, i) => p.classList.toggle('kosong', i >= aku.ammo));
+  $('ammoBox').classList.toggle('habis', aku.ammo <= 0);
+  $('ammoTips').classList.toggle('hidden', aku.ammo > 0);
+}
+let timerPetunjuk;
+function tampilPetunjuk(teks, ms = 2200) {
+  const el = $('petunjuk'); el.textContent = teks; el.style.opacity = 1;
+  clearTimeout(timerPetunjuk); timerPetunjuk = setTimeout(() => (el.style.opacity = 0), ms);
+}
+function tambahFeed(teks) {
+  const el = document.createElement('div'); el.className = 'kaca'; el.textContent = teks; $('feed').appendChild(el);
+  setTimeout(() => el.remove(), 5000);
+  while ($('feed').children.length > 5) $('feed').firstChild.remove();
+}
+function hitmarker() { const h = $('hitmark'); h.classList.add('on'); clearTimeout(h._t); h._t = setTimeout(() => h.classList.remove('on'), 130); }
+function flashMerah() { const f = $('flash'); f.style.opacity = 1; setTimeout(() => (f.style.opacity = 0), 180); }
+function renderSkor() {
+  const list = [{ id: 'aku', nama: aku.nama, warna: aku.warna, skor: aku.skor, benar: aku.benar, aku: true }];
+  for (const o of Object.values(lain)) if (!o.bot && o.ronde === aku.ronde) list.push({ nama: o.nama, warna: o.warna, skor: o.skor, benar: o.benar });
+  list.sort((a, b) => b.skor - a.skor || b.benar - a.benar);
+  const isi = $('isiSkor'); isi.innerHTML = '';
+  list.slice(0, isMobile ? 5 : 10).forEach((p, i) => {
+    const row = document.createElement('div'); row.className = 'baris' + (p.aku ? ' aku' : '');
+    const pos = document.createElement('span'); pos.className = 'pos'; pos.textContent = i === 0 && p.skor > 0 ? '👑' : i + 1;
+    const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = p.warna;
+    const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = p.nama;
+    const sk = document.createElement('b'); sk.textContent = p.skor;
+    const bn = document.createElement('small'); bn.textContent = `✔${p.benar}`; bn.title = 'Soal dijawab benar';
+    row.append(pos, dot, nm, sk, bn); isi.appendChild(row);
+  });
+  const nBot = Object.values(lain).filter((o) => o.bot).length;
+  $('jumlahPemain').textContent = mode === 'latihan' ? `1 + ${nBot} bot` : `${Object.values(lain).filter((o) => !o.bot).length + 1}/${MAX_PEMAIN}`;
+}
+
+/* ================= KUIS ================= */
+let soalAktif = null;
+function bukaKuis() {
+  if (kuisBuka || aku.mati || !main || menangTampil) return;
+  kuisBuka = true; mouseTekan = false;
+  if (!isMobile) { try { document.exitPointerLock(); } catch (e) {} }
+  $('klikMain').classList.add('hidden'); $('kuis').classList.remove('hidden');
+  $('kuisHasil').innerHTML = ''; $('kuisPilihan').innerHTML = '';
+  $('kuisKecil').textContent = isMobile ? 'Ketuk jawabanmu' : 'Tekan 1 sampai 4 untuk menjawab · Esc untuk batal';
+  const sisa = Math.ceil((blokirSoal - Date.now()) / 1000);
+  if (sisa > 0) { soalAktif = null; $('kuisTeks').textContent = `⏳ Tunggu ${sisa} detik lagi sebelum soal berikutnya.`; setTimeout(() => { if (kuisBuka) tutupKuis(); }, 1300); return; }
+  soalAktif = buatSoal(aku.topik);
+  $('kuisTag').textContent = '🧠 ISI PELURU · ' + NAMA_TOPIK[aku.topik].toUpperCase();
+  $('kuisTeks').textContent = soalAktif.teks;
+  soalAktif.pilihan.forEach((p, i) => { const b = document.createElement('button'); b.textContent = `${i + 1}. ${p}`; b.onclick = () => jawab(i); $('kuisPilihan').appendChild(b); });
+}
+function tutupKuis() {
+  kuisBuka = false; soalAktif = null;
+  $('kuis').classList.add('hidden');
+  if (isMobile) terkunci = true;
+  else { if (tanpaKunci) terkunci = false; if (main && !terkunci) $('klikMain').classList.remove('hidden'); }
+}
+function jawab(i) {
+  if (!soalAktif) return;
+  const s = soalAktif; soalAktif = null;
+  const tombolJawab = [...$('kuisPilihan').children];
+  tombolJawab.forEach((b, j) => { b.disabled = true; if (j === s.benar) b.classList.add('benar'); });
+  const benar = i === s.benar;
+  const el = $('kuisHasil'); el.innerHTML = '';
+  const judul = document.createElement('div'); judul.className = benar ? 'ok' : 'no';
+  judul.textContent = benar ? '✔ Benar! Peluru penuh dan +20 HP' : `✘ Salah. Jawaban yang benar: ${s.pilihan[s.benar]}`;
+  const pj = document.createElement('div'); pj.textContent = '💡 ' + s.penjelasan;
+  el.append(judul, pj);
+  if (benar) { aku.ammo = MAX_AMMO; aku.benar++; if (!aku.mati) aku.hp = Math.min(100, aku.hp + 20); updateHud(); sfx('benar'); }
+  else { blokirSoal = Date.now() + 3000; sfx('salah'); }
+  setTimeout(() => { if (kuisBuka) tutupKuis(); }, benar ? 1800 : 3400);
+}
+
+/* ================= INPUT DESKTOP ================= */
+const layar = renderer.domElement;
+let tanpaKunci = false;
+function modeTanpaKunci() {
+  tanpaKunci = true; terkunci = true; $('klikMain').classList.add('hidden');
+  tampilPetunjuk('Mouse tidak bisa dikunci di sini. Gerakkan mouse atau panah kiri/kanan untuk menoleh.', 4500);
+}
+function kunci() {
+  if (!main || kuisBuka || isMobile || !$('konfirmasi').classList.contains('hidden')) return;
+  if (tanpaKunci) { terkunci = true; $('klikMain').classList.add('hidden'); return; }
+  try { const p = layar.requestPointerLock(); if (p && p.catch) p.catch(modeTanpaKunci); } catch (e) { modeTanpaKunci(); }
+}
+layar.addEventListener('click', kunci);
+$('klikMain').addEventListener('click', kunci);
+document.addEventListener('pointerlockerror', () => { if (!tanpaKunci) modeTanpaKunci(); });
+document.addEventListener('pointerlockchange', () => {
+  if (isMobile) return;
+  terkunci = document.pointerLockElement === layar;
+  $('klikMain').classList.toggle('hidden', terkunci || !main || kuisBuka || !$('konfirmasi').classList.contains('hidden'));
+  if (!terkunci) { mouseTekan = false; for (const k in tombol) tombol[k] = false; }
+});
+document.addEventListener('mousemove', (e) => {
+  if (!terkunci || isMobile) return;
+  aku.yaw -= e.movementX * 0.0022;
+  aku.pitch = Math.max(-1.2, Math.min(1.0, aku.pitch - e.movementY * 0.0022));
+});
+document.addEventListener('mousedown', (e) => { if (!isMobile && terkunci && e.button === 0 && e.target === layar) { mouseTekan = true; tembak(); } });
+document.addEventListener('mouseup', (e) => { if (e.button === 0) mouseTekan = false; });
+document.addEventListener('keydown', (e) => {
+  if (kuisBuka) { if (e.key >= '1' && e.key <= '4') jawab(Number(e.key) - 1); if (e.key === 'Escape') tutupKuis(); return; }
+  if (!main || document.activeElement.tagName === 'INPUT') return;
+  if (e.key === 'Escape' && tanpaKunci) { terkunci = false; mouseTekan = false; $('klikMain').classList.remove('hidden'); return; }
+  tombol[e.code] = true;
+  if (e.code === 'KeyR') bukaKuis();
+  if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
+});
+document.addEventListener('keyup', (e) => { tombol[e.code] = false; });
+addEventListener('blur', () => { for (const k in tombol) tombol[k] = false; mouseTekan = false; });
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+/* ================= INPUT MOBILE ================= */
+const joy = { id: null, cx: 0, cy: 0, x: 0, y: 0 }, lihat = { id: null, x: 0, y: 0 };
+let sprintMobile = false, lompatMobile = false;
+function joyReset() { joy.id = null; joy.x = joy.y = 0; $('joyKnob').style.transform = ''; }
+function gerakJoy(e) {
+  const dx = e.clientX - joy.cx, dy = e.clientY - joy.cy, maks = 55;
+  const len = Math.hypot(dx, dy), k = len > maks ? maks / len : 1;
+  $('joyKnob').style.transform = `translate(${dx * k}px, ${dy * k}px)`;
+  joy.x = (dx * k) / maks; joy.y = (dy * k) / maks;
+}
+$('joyZone').addEventListener('pointerdown', (e) => {
+  if (joy.id !== null) return;
+  joy.id = e.pointerId; const r = $('joyBase').getBoundingClientRect(); joy.cx = r.left + r.width / 2; joy.cy = r.top + r.height / 2;
+  try { $('joyZone').setPointerCapture(e.pointerId); } catch (er) {}
+  gerakJoy(e); e.preventDefault();
+});
+$('joyZone').addEventListener('pointermove', (e) => { if (e.pointerId === joy.id) gerakJoy(e); });
+for (const ev of ['pointerup', 'pointercancel']) $('joyZone').addEventListener(ev, (e) => { if (e.pointerId === joy.id) joyReset(); });
+$('lookZone').addEventListener('pointerdown', (e) => {
+  if (lihat.id !== null) return;
+  lihat.id = e.pointerId; lihat.x = e.clientX; lihat.y = e.clientY;
+  try { $('lookZone').setPointerCapture(e.pointerId); } catch (er) {}
+});
+$('lookZone').addEventListener('pointermove', (e) => {
+  if (e.pointerId !== lihat.id) return;
+  aku.yaw -= (e.clientX - lihat.x) * 0.0055;
+  aku.pitch = Math.max(-1.2, Math.min(1.0, aku.pitch - (e.clientY - lihat.y) * 0.0045));
+  lihat.x = e.clientX; lihat.y = e.clientY;
+});
+for (const ev of ['pointerup', 'pointercancel']) $('lookZone').addEventListener(ev, (e) => { if (e.pointerId === lihat.id) lihat.id = null; });
+function tombolMobile(id, turun, naik) {
+  const el = $(id);
+  el.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); el.classList.add('tekan'); try { el.setPointerCapture(e.pointerId); } catch (er) {} turun(); });
+  for (const ev of ['pointerup', 'pointercancel']) el.addEventListener(ev, () => { el.classList.remove('tekan'); if (naik) naik(); });
+}
+tombolMobile('mbTembak', () => { mouseTekan = true; tembak(); }, () => { mouseTekan = false; });
+tombolMobile('mbLompat', () => { lompatMobile = true; }, () => { lompatMobile = false; });
+tombolMobile('mbSprint', () => { sprintMobile = !sprintMobile; $('mbSprint').classList.toggle('aktif', sprintMobile); });
+tombolMobile('mbIsi', () => bukaKuis());
+
+/* ================= TEMBAK ================= */
+const ray = new THREE.Raycaster();
+const tengahLayar = new THREE.Vector2(0, 0);
+function cariPid(obj) { while (obj) { if (obj.userData && obj.userData.pid) return obj.userData.pid; obj = obj.parent; } return null; }
+function tembak() {
+  if (!terkunci || aku.mati || kuisBuka || menangTampil || !main) return;
+  const now = performance.now();
+  if (now - tembakTerakhir < 240) return;
+  if (aku.ammo <= 0) { if (now - tembakTerakhir > 500) { tembakTerakhir = now; sfx('habis'); tampilPetunjuk(isMobile ? 'Peluru habis! Tekan ❓ lalu jawab soal' : 'Peluru habis! Tekan R lalu jawab soal'); } return; }
+  tembakTerakhir = now;
+  aku.ammo--; updateHud();
+  ray.setFromCamera(tengahLayar, camera);
+  const sasaran = [...blokMesh, ...Object.values(lain).filter((o) => !o.mati).map((o) => o.group)];
+  const hits = ray.intersectObjects(sasaran, true).filter((h) => h.object.type === 'Mesh');
+  let targetId = null, titik = ray.ray.at(120, new THREE.Vector3());
+  if (hits.length) { titik = hits[0].point; targetId = cariPid(hits[0].object); }
+  const hue = (now / 900) % 1;
+  const dari = aku.group.userData.ujung.getWorldPosition(new THREE.Vector3());
+  peluru(dari, titik, hue); kilatMoncong(dari, hue); sfx('tembak');
+  aku.pitch = Math.min(1.0, aku.pitch + 0.012); guncang = Math.max(guncang, 0.06);
+  const ch = $('crosshair'); ch.classList.add('buka'); clearTimeout(ch._t); ch._t = setTimeout(() => ch.classList.remove('buka'), 90);
+  net.tn++; net.hu = Math.round(hue * 100) / 100;
+  net.tt = [Math.round(titik.x * 10) / 10, Math.round(titik.y * 10) / 10, Math.round(titik.z * 10) / 10];
+  if (targetId && lain[targetId]) {
+    const o = lain[targetId];
+    hitmarker(); setTimeout(() => sfx('kena'), 30);
+    ledakan(titik, hue, 22, 1.5); ledakan(titik, (hue + 0.5) % 1, 10, 0.9); angkaDamage(titik, '-' + DAMAGE); setFlash(o.group);
+    const bt = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX_BINTANG, color: new THREE.Color().setHSL(hue, 1, 0.7), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); bt.position.copy(titik);
+    tambahEfek(bt, 0.18, (e) => { const k = 1 - e.life / e.max; bt.scale.setScalar(0.6 + k * 2.4); bt.material.opacity = 1 - k; bt.material.rotation += 0.2; });
+    if (o.bot) kenaBot(o, titik); else net.h[targetId] = (net.h[targetId] || 0) + 1;
+  } else if (hits.length) ledakan(titik, hue, 9, 0.8);
+}
+
+/* ================= FISIKA ================= */
+const R = 0.45, TINGGI = 2.8, LAJU = 9, LARI = 15, GRAVITASI = 32, LOMPAT = 12;
+function tabrak(x, y, z) {
+  for (const b of KOTAK) if (x + R > b.minX && x - R < b.maxX && z + R > b.minZ && z - R < b.maxZ && y + TINGGI > b.minY && y < b.maxY) return b;
+  return null;
+}
+function cobaGeser(dx, dz) {
+  if (!dx && !dz) return;
+  const p = aku.pos, b = tabrak(p.x + dx, p.y, p.z + dz);
+  if (!b) { p.x += dx; p.z += dz; return; }
+  if (aku.diTanah && b.maxY - p.y <= 1.05 && !tabrak(p.x + dx, b.maxY + 0.01, p.z + dz)) { p.x += dx; p.z += dz; p.y = b.maxY; }
+}
+function bacaInput() {
+  const i = { maju: 0, samping: 0, lari: false, lompat: false };
+  if (!terkunci || aku.mati || kuisBuka || !main) return i;
+  if (joy.id !== null) { i.maju = -joy.y; i.samping = joy.x; }
+  else { i.maju = (tombol.KeyW ? 1 : 0) - (tombol.KeyS ? 1 : 0); i.samping = (tombol.KeyD ? 1 : 0) - (tombol.KeyA ? 1 : 0); }
+  i.lari = !!(tombol.ShiftLeft || tombol.ShiftRight || sprintMobile);
+  i.lompat = !!(tombol.Space || lompatMobile);
+  return i;
+}
+let lajuAku = 0;
+function updateAku(dt) {
+  const p = aku.pos, inp = bacaInput();
+  const fx = -Math.sin(aku.yaw), fz = -Math.cos(aku.yaw), kx = Math.cos(aku.yaw), kz = -Math.sin(aku.yaw);
+  const dx = fx * inp.maju + kx * inp.samping, dz = fz * inp.maju + kz * inp.samping;
+  const mag = Math.min(1, Math.hypot(inp.maju, inp.samping));
+  if (aku.stamina <= 0) aku.capek = true;
+  if (aku.capek && aku.stamina > 30) aku.capek = false;
+  aku.lari = inp.lari && mag > 0.2 && !aku.capek;
+  aku.stamina = aku.lari ? Math.max(0, aku.stamina - 26 * dt) : Math.min(100, aku.stamina + 17 * dt);
+  lajuAku = (aku.lari ? LARI : LAJU) * mag;
+  const n = Math.hypot(dx, dz) || 1;
+  cobaGeser((dx / n) * lajuAku * dt, 0);
+  cobaGeser(0, (dz / n) * lajuAku * dt);
+  if (inp.lompat && aku.diTanah) { aku.velY = LOMPAT; aku.diTanah = false; sfx('lompat'); if (lompatMobile) lompatMobile = false; }
+  aku.velY -= GRAVITASI * dt;
+  const ny = p.y + aku.velY * dt, b = tabrak(p.x, ny, p.z);
+  if (b) { if (aku.velY <= 0) { p.y = b.maxY; aku.diTanah = true; } else aku.diTanah = false; aku.velY = 0; }
+  else { p.y = ny; aku.diTanah = false; }
+  if (p.y <= 0) { p.y = 0; aku.velY = 0; aku.diTanah = true; }
+  p.x = Math.max(-59, Math.min(59, p.x)); p.z = Math.max(-59, Math.min(59, p.z));
+  aku.group.position.copy(p);
+  if (aku.mati) aku.group.position.y += 0.25;
+  aku.group.rotation.y = aku.yaw;
+  animasiJalan(aku.group, aku.diTanah ? lajuAku : 0, dt);
+  $('staminaIsi').style.width = aku.stamina + '%';
+  $('staminaIsi').classList.toggle('capek', aku.capek);
+}
+function updateLain(dt) {
+  const k = 1 - Math.exp(-14 * dt);
+  for (const o of Object.values(lain)) {
+    const g = o.group, sx = g.position.x, sz = g.position.z;
+    const tujuan = o.target.clone(); if (o.mati) tujuan.y += 0.25;
+    g.position.lerp(tujuan, k);
+    let d = o.ry - g.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); g.rotation.y += d * k;
+    animasiJalan(g, o.mati ? 0 : Math.hypot(g.position.x - sx, g.position.z - sz) / Math.max(dt, 1e-4), dt);
+    updateFlash(g, dt);
+  }
+}
+
+/* ================= KAMERA ================= */
+const rayKamera = new THREE.Raycaster();
+function updateKamera(dt) {
+  const pivot = aku.pos.clone().add(new THREE.Vector3(0, 2.7, 0));
+  const arah = new THREE.Vector3(-Math.sin(aku.yaw) * Math.cos(aku.pitch), Math.sin(aku.pitch), -Math.cos(aku.yaw) * Math.cos(aku.pitch));
+  const kanan = new THREE.Vector3(Math.cos(aku.yaw), 0, -Math.sin(aku.yaw));
+  const bahu = pivot.clone().addScaledVector(kanan, 1.3);
+  let jarak = 6;
+  rayKamera.set(bahu, arah.clone().negate()); rayKamera.far = jarak;
+  const h = rayKamera.intersectObjects(blokMesh, false);
+  if (h.length) jarak = Math.max(0.6, h[0].distance - 0.3);
+  camera.position.copy(bahu).addScaledVector(arah, -jarak);
+  if (guncang > 0.002) { camera.position.x += (Math.random() - 0.5) * guncang; camera.position.y += (Math.random() - 0.5) * guncang; guncang *= Math.exp(-9 * dt); }
+  camera.lookAt(camera.position.clone().add(arah));
+  const fov = aku.lari ? 82 : 72;
+  if (Math.abs(camera.fov - fov) > 0.1) { camera.fov += (fov - camera.fov) * Math.min(1, dt * 8); camera.updateProjectionMatrix(); }
+}
+
+/* ================= LOOP ================= */
+bangunMap(mapPilihan);
+let terakhir = performance.now(), kirimT = 0, skorT = 0, sudutIntro = 0, waktu = 0;
+function loop() {
+  requestAnimationFrame(loop);
+  const now = performance.now();
+  const dt = Math.min(0.05, (now - terakhir) / 1000); terakhir = now; waktu += dt;
+  for (const f of mapAnim) f(dt, waktu);
+  if (main && aku.group) {
+    if (tombol.ArrowLeft) aku.yaw += 2.2 * dt;
+    if (tombol.ArrowRight) aku.yaw -= 2.2 * dt;
+    updateAku(dt);
+    if (mode === 'online') prosesPeers(); else updateBot(dt);
+    updateLain(dt); updateFlash(aku.group, dt);
+    if (mouseTekan) tembak();
+    kirimT += dt; if (kirimT >= 0.05) { kirimT = 0; kirimPresence(); }
+    skorT += dt; if (skorT >= 0.4) { skorT = 0; renderSkor(); }
+    updateKamera(dt);
+  } else {
+    sudutIntro += dt * 0.1;
+    camera.position.set(Math.sin(sudutIntro) * 50, 26, Math.cos(sudutIntro) * 50);
+    camera.lookAt(0, 3, 0);
+  }
+  muzzleLight.intensity *= Math.exp(-30 * dt);
+  updateEfek(dt);
+  renderer.render(scene, camera);
+}
+loop();
+</script>
+</body>
+</html>
