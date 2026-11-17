@@ -140,7 +140,7 @@
   #putar div { font-size:64px; margin-bottom:12px; animation:putar 1.6s ease-in-out infinite; }
   @keyframes putar { 50% { transform:rotate(90deg); } }
   @media (orientation: portrait) { body.mobile.main #putar { display:flex; } }
-  body.mobile #shortcut, body.mobile #klikMain { display:none !important; }
+
   body.mobile #papanSkor { width:180px; padding:6px 8px; }
   body.mobile .baris { font-size:12px; padding:2px 4px; }
   body.mobile #papanSkor .judul { font-size:10px; }
@@ -171,7 +171,30 @@
   @keyframes pop { from { transform:scale(.3); } 70% { transform:scale(1.1); } }
 
   .kartu { background:#fff; color:#1f2937; width:min(540px,92vw); border-radius:22px; padding:22px; box-shadow:0 10px 0 rgba(0,0,0,.2); text-align:left; }
-  #kuis { background:rgba(8,14,40,.55); }
+  #kuis { background:rgba(8,14,40,.28); pointer-events:none; }
+  #kuis .kartu { pointer-events:auto; }
+  #kuisHasil .lanjut { margin-top:8px; font-size:12px; color:#94a3b8; }
+  body.mobile #kuis { align-items:flex-start; padding-top:8px; }
+  body.mobile #kuis .kartu { width:min(520px,62vw); padding:12px 14px; }
+  body.mobile #kuisTeks { font-size:17px; margin:6px 0 8px; }
+  body.mobile #kuisPilihan { gap:6px; }
+  body.mobile #kuisPilihan button { padding:9px 10px; font-size:14px; min-height:40px; }
+  body.mobile .kuisHead .timer, body.mobile #kuisHasil div:not(.ok):not(.no) { font-size:11px; }
+  #panduan { background:rgba(8,12,30,.7); z-index:40; padding:16px; touch-action:pan-y; }
+  #panduan .kartu { width:min(760px,96vw); max-height:92vh; overflow-y:auto; touch-action:pan-y; padding:22px 22px 18px; }
+  .pdHead { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .pdHead h3 { margin:0; font-size:24px; color:var(--navy); flex:1; }
+  .pdTutup { border:0; background:#eef2f7; width:40px; height:40px; border-radius:12px; font-size:20px; color:#334155; }
+  .pdTabs { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 14px; }
+  .pdTab { border:2px solid #e2e8f0; background:#f8fafc; color:#334155; border-radius:999px; padding:7px 14px; font-weight:700; font-size:14px; }
+  .pdTab.aktif { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .pdIsi { display:none; } .pdIsi.aktif { display:block; }
+  .pdIsi ol, .pdIsi ul { margin:0; padding-left:22px; line-height:1.75; color:#334155; font-size:15px; }
+  .pdIsi li b { color:var(--navy); }
+  .ktTabel { display:grid; grid-template-columns:auto 1fr; gap:8px 14px; align-items:center; font-size:15px; color:#334155; }
+  .tuts { display:flex; gap:4px; flex-wrap:wrap; }
+  .tut { display:inline-block; min-width:30px; text-align:center; background:#fff; border:2px solid #cbd5e1; border-bottom-width:4px; border-radius:8px; padding:2px 8px; font-weight:700; font-size:14px; color:#1f2937; }
+  .pdCatatan { margin-top:14px; background:#fff7e0; color:#8a5a00; border-radius:12px; padding:10px 12px; font-size:14px; }
   #kuis .kartu { box-shadow:0 10px 0 var(--oranye); }
   .kuisHead { display:flex; align-items:center; gap:10px; }
   .kuisHead .tag { background:#fff3d6; color:#b86e00; border-radius:8px; padding:3px 10px; font-size:13px; font-weight:700; }
@@ -224,12 +247,9 @@
         <p class="info">Map dan topik soal mengikuti pilihan host.</p>
       </div>
       <button class="btn oranye tipis" id="btnLatihan">🤖 Latihan lawan bot</button>
+      <button class="btn biru tipis" id="btnPanduan">📖 Petunjuk & Kontrol</button>
       <div id="error"></div>
       <div id="statusNet">Menyambungkan ke server room...</div>
-    </div>
-    <div class="kontrolInfo">
-      💻 <b>WASD</b> jalan · <b>Shift</b> lari · <b>Spasi</b> lompat · <b>Klik</b> tembak · <b>R</b> isi peluru<br>
-      📱 Joystick kiri untuk jalan · geser layar kanan untuk membidik · tombol di kanan bawah
     </div>
   </div>
 </div>
@@ -254,7 +274,6 @@
     </div>
     <div id="ammoBox" class="kaca"><div id="ammoAngka">10<small>/10</small></div><div id="pips"></div><div class="tips hidden" id="ammoTips">Tekan R / ❓ untuk isi</div></div>
   </div>
-  <div id="shortcut" class="kaca"><b>Shift</b> lari · <b>R</b> isi peluru · <b>Esc</b> lepas mouse</div>
   <div id="petunjuk" class="kaca"></div>
   <div id="flash"></div>
   <div id="mobile" class="hidden">
@@ -267,7 +286,6 @@
   </div>
 </div>
 
-<div id="klikMain" class="overlay hidden"><div class="isi kaca"><div class="besar">🖱️ Klik untuk main</div><small>Esc untuk melepas mouse · panah kiri/kanan juga bisa untuk menoleh</small></div></div>
 <div id="layarMati" class="overlay hidden"><div class="t1" id="matiT1"></div><div class="t2">Bangkit lagi dalam 3 detik...</div></div>
 <div id="layarMenang" class="overlay hidden"><div class="t1" id="menangT1"></div><div class="t2">Ronde baru dimulai sebentar lagi...</div></div>
 
@@ -287,6 +305,66 @@
     <h3>Keluar ke menu utama?</h3>
     <p>Kamu akan keluar dari room ini dan skor ronde ini hilang.</p>
     <div class="duaBtn"><button class="btn abu" id="btnBatalKeluar">Batal</button><button class="btn merah" id="btnYaKeluar">Ya, keluar</button></div>
+  </div>
+</div>
+
+<div id="panduan" class="overlay hidden">
+  <div class="kartu">
+    <div class="pdHead"><span style="font-size:30px">📖</span><h3>Petunjuk Permainan</h3><button class="pdTutup" id="btnTutupPanduan">✕</button></div>
+    <div class="pdTabs">
+      <button class="pdTab aktif" data-pd="cara">🎯 Cara Main</button>
+      <button class="pdTab" data-pd="pc">💻 Kontrol PC</button>
+      <button class="pdTab" data-pd="hp">📱 Kontrol HP</button>
+      <button class="pdTab" data-pd="tips">💡 Tips</button>
+    </div>
+    <div class="pdIsi aktif" id="pd-cara">
+      <ol>
+        <li><b>Buat Room</b>: pilih map dan topik soal, lalu bagikan kode 5 huruf ke teman. Atau <b>Gabung Room</b> pakai kode dari teman.</li>
+        <li>Tumbangkan lawan. Sekali tembak mengurangi <b>25 HP</b>. Pemain pertama yang mencapai <b>10 kill</b> menang, lalu ronde baru dimulai otomatis.</li>
+        <li>Peluru hanya <b>10</b>. Kalau habis, buka soal lalu jawab untuk isi ulang.</li>
+        <li>Jawaban <b>benar</b>: peluru penuh dan <b>+20 HP</b>. Jawaban <b>salah</b>: kamu melihat jawaban yang benar beserta penjelasannya, lalu harus menunggu 3 detik sebelum soal berikutnya.</li>
+        <li>Yang tumbang bangkit lagi setelah 3 detik di titik acak.</li>
+        <li>Satu room maksimal <b>10 pemain</b>. Map dan topik soal mengikuti pilihan host.</li>
+      </ol>
+    </div>
+    <div class="pdIsi" id="pd-pc">
+      <div class="ktTabel">
+        <div class="tuts"><span class="tut">W</span><span class="tut">A</span><span class="tut">S</span><span class="tut">D</span></div><div>Jalan</div>
+        <div class="tuts"><span class="tut">Mouse</span></div><div>Membidik / menoleh</div>
+        <div class="tuts"><span class="tut">Klik kiri</span></div><div>Menembak (tahan untuk tembak terus)</div>
+        <div class="tuts"><span class="tut">Spasi</span></div><div>Lompat</div>
+        <div class="tuts"><span class="tut">Shift</span></div><div>Lari (tahan, menghabiskan stamina ⚡)</div>
+        <div class="tuts"><span class="tut">R</span></div><div>Buka soal untuk isi peluru</div>
+        <div class="tuts"><span class="tut">1</span><span class="tut">2</span><span class="tut">3</span><span class="tut">4</span></div><div>Pilih jawaban soal</div>
+        <div class="tuts"><span class="tut">← →</span></div><div>Menoleh pakai keyboard</div>
+        <div class="tuts"><span class="tut">Esc</span></div><div>Melepas mouse. Klik layar game untuk mengunci mouse lagi</div>
+        <div class="tuts"><span class="tut">🏠</span></div><div>Kembali ke menu (lepas mouse dulu dengan Esc)</div>
+      </div>
+      <div class="pdCatatan">🖱️ Mouse otomatis terkunci saat game dimulai. Kalau terlepas, cukup klik di layar game, tidak ada pop up yang menghalangi.</div>
+    </div>
+    <div class="pdIsi" id="pd-hp">
+      <ul>
+        <li><b>Joystick kiri</b>: jalan ke segala arah.</li>
+        <li><b>Geser layar bagian kanan</b>: membidik / menoleh.</li>
+        <li><b>🔫</b>: menembak (tahan untuk tembak terus).</li>
+        <li><b>⬆</b>: lompat.</li>
+        <li><b>⚡</b>: lari, ketuk sekali untuk menyalakan, ketuk lagi untuk mematikan.</li>
+        <li><b>❓</b>: buka soal untuk isi peluru, lalu ketuk jawabanmu.</li>
+        <li><b>🏠</b>: kembali ke menu.</li>
+      </ul>
+      <div class="pdCatatan">📱 Putar HP ke posisi mendatar (landscape) supaya kontrolnya pas.</div>
+    </div>
+    <div class="pdIsi" id="pd-tips">
+      <ul>
+        <li>Isi peluru di <b>tempat aman</b> (di balik tembok, pohon, atau gedung). Saat soal terbuka kamu tetap bisa ditembak, tapi masih bisa <b>bergerak</b> untuk menghindar.</li>
+        <li>Setelah menjawab, tekan tombol apa saja (atau ketuk kartu soal di HP) untuk langsung kembali bertarung.</li>
+        <li>Jawab dengan teliti: salah jawab membuatmu menunggu 3 detik tanpa peluru.</li>
+        <li>Jangan isi peluru tepat saat musuh di depanmu. Isi saat peluru tinggal sedikit, bukan saat sudah nol.</li>
+        <li>Naik ke tempat tinggi (menara di Taman Blok, puncak piramida, plaza di Kota Neon) untuk melihat lawan dari jauh.</li>
+        <li>Lari menghabiskan stamina. Kalau bar ⚡ habis, tunggu terisi sebentar.</li>
+        <li>Lihat bar HP di atas kepala musuh untuk memilih lawan yang hampir tumbang.</li>
+      </ul>
+    </div>
   </div>
 </div>
 
@@ -1294,7 +1372,7 @@ function mulaiGame() {
   main = true; document.body.classList.add('main');
   $('lobby').classList.add('hidden'); $('hud').classList.remove('hidden'); $('error').textContent = '';
   if (isMobile) { terkunci = true; $('mobile').classList.remove('hidden'); try { document.documentElement.requestFullscreen?.().catch(() => {}); } catch (e) {} }
-  else $('klikMain').classList.remove('hidden');
+  else kunci();
   musikMulai(mapAktif); renderSkor();
 }
 async function keluarHome() {
@@ -1311,7 +1389,7 @@ async function keluarHome() {
   try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
   terkunci = false; mouseTekan = false; joyReset(); sprintMobile = false; $('mbSprint').classList.remove('aktif');
   document.body.classList.remove('main');
-  for (const id of ['hud', 'klikMain', 'layarMati', 'layarMenang', 'mobile']) $(id).classList.add('hidden');
+  for (const id of ['hud', 'layarMati', 'layarMenang', 'mobile']) $(id).classList.add('hidden');
   $('lobby').classList.remove('hidden');
   $('feed').innerHTML = '';
   bangunMap(mapPilihan);
@@ -1384,6 +1462,14 @@ $('btnGabung').onclick = () => {
   masukOnline(kode, false);
 };
 $('btnLatihan').onclick = mulaiLatihan;
+$('btnPanduan').onclick = () => { $('panduan').classList.remove('hidden'); sfx('klik'); };
+$('btnTutupPanduan').onclick = () => { $('panduan').classList.add('hidden'); sfx('klik'); };
+$('panduan').addEventListener('click', (e) => { if (e.target === $('panduan')) $('panduan').classList.add('hidden'); });
+document.querySelectorAll('.pdTab').forEach((b) => b.onclick = () => {
+  document.querySelectorAll('.pdTab').forEach((x) => x.classList.toggle('aktif', x === b));
+  document.querySelectorAll('.pdIsi').forEach((x) => x.classList.toggle('aktif', x.id === 'pd-' + b.dataset.pd));
+  sfx('klik');
+});
 $('kodeInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnGabung').click(); });
 $('btnSuaraLobby').onclick = () => setMusik(!AU.musikOn);
 $('btnMusik').onclick = () => setMusik(!AU.musikOn);
@@ -1394,9 +1480,9 @@ $('btnSalin').onclick = () => {
 };
 $('btnHome').onclick = () => {
   try { document.exitPointerLock(); } catch (e) {}
-  mouseTekan = false; $('klikMain').classList.add('hidden'); $('konfirmasi').classList.remove('hidden'); sfx('klik');
+  mouseTekan = false; $('konfirmasi').classList.remove('hidden'); sfx('klik');
 };
-$('btnBatalKeluar').onclick = () => { $('konfirmasi').classList.add('hidden'); if (!isMobile && !terkunci && main) $('klikMain').classList.remove('hidden'); };
+$('btnBatalKeluar').onclick = () => { $('konfirmasi').classList.add('hidden'); if (!isMobile && main) kunci(); };
 $('btnYaKeluar').onclick = keluarHome;
 tombolSuara();
 
@@ -1446,26 +1532,29 @@ function renderSkor() {
 let soalAktif = null;
 function bukaKuis() {
   if (kuisBuka || aku.mati || !main || menangTampil) return;
-  kuisBuka = true; mouseTekan = false;
-  if (!isMobile) { try { document.exitPointerLock(); } catch (e) {} }
-  $('klikMain').classList.add('hidden'); $('kuis').classList.remove('hidden');
+  kuisBuka = true; mouseTekan = false; sudahDijawab = false;
+  $('kuis').classList.remove('hidden');
   $('kuisHasil').innerHTML = ''; $('kuisPilihan').innerHTML = '';
-  $('kuisKecil').textContent = isMobile ? 'Ketuk jawabanmu' : 'Tekan 1 sampai 4 untuk menjawab · Esc untuk batal';
+  $('kuisKecil').textContent = isMobile ? 'Ketuk jawabanmu · joystick tetap bisa dipakai untuk menghindar' : 'Tekan 1 sampai 4 untuk menjawab · WASD tetap bisa dipakai untuk menghindar · Esc batal';
   const sisa = Math.ceil((blokirSoal - Date.now()) / 1000);
-  if (sisa > 0) { soalAktif = null; $('kuisTeks').textContent = `⏳ Tunggu ${sisa} detik lagi sebelum soal berikutnya.`; setTimeout(() => { if (kuisBuka) tutupKuis(); }, 1300); return; }
+  if (sisa > 0) { soalAktif = null; $('kuisTeks').textContent = `⏳ Tunggu ${sisa} detik lagi sebelum soal berikutnya.`; setTimeout(() => { if (kuisBuka) tutupKuis(); }, 900); return; }
   soalAktif = buatSoal(aku.topik);
   $('kuisTag').textContent = '🧠 ISI PELURU · ' + NAMA_TOPIK[aku.topik].toUpperCase();
   $('kuisTeks').textContent = soalAktif.teks;
-  soalAktif.pilihan.forEach((p, i) => { const b = document.createElement('button'); b.textContent = `${i + 1}. ${p}`; b.onclick = () => jawab(i); $('kuisPilihan').appendChild(b); });
+  soalAktif.pilihan.forEach((p, i) => { const b = document.createElement('button'); b.textContent = `${i + 1}. ${p}`; b.onclick = () => jawab(i, true); $('kuisPilihan').appendChild(b); });
 }
 function tutupKuis() {
-  kuisBuka = false; soalAktif = null;
+  kuisBuka = false; soalAktif = null; sudahDijawab = false;
+  clearTimeout(timerKuis);
   $('kuis').classList.add('hidden');
-  if (isMobile) terkunci = true;
-  else { if (tanpaKunci) terkunci = false; if (main && !terkunci) $('klikMain').classList.remove('hidden'); }
+  if (isMobile || tanpaKunci) terkunci = true;
+  else terkunci = document.pointerLockElement === layar;
 }
-function jawab(i) {
+let sudahDijawab = false, timerKuis = null;
+function jawab(i, dariKlik) {
   if (!soalAktif) return;
+  // Jawab pakai klik saat mouse sedang lepas: kunci lagi langsung (klik = izin dari browser)
+  if (dariKlik && !isMobile && !tanpaKunci && document.pointerLockElement !== layar) { try { const p = layar.requestPointerLock(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
   const s = soalAktif; soalAktif = null;
   const tombolJawab = [...$('kuisPilihan').children];
   tombolJawab.forEach((b, j) => { b.disabled = true; if (j === s.benar) b.classList.add('benar'); });
@@ -1477,41 +1566,49 @@ function jawab(i) {
   el.append(judul, pj);
   if (benar) { aku.ammo = MAX_AMMO; aku.benar++; if (!aku.mati) aku.hp = Math.min(100, aku.hp + 20); updateHud(); sfx('benar'); }
   else { blokirSoal = Date.now() + 3000; sfx('salah'); }
-  setTimeout(() => { if (kuisBuka) tutupKuis(); }, benar ? 1800 : 3400);
+  sudahDijawab = true;
+  const lanjut = document.createElement('div'); lanjut.className = 'lanjut'; lanjut.textContent = isMobile ? 'Ketuk untuk langsung lanjut' : 'Tekan tombol apa saja untuk langsung lanjut';
+  el.appendChild(lanjut);
+  clearTimeout(timerKuis);
+  timerKuis = setTimeout(() => { if (kuisBuka) tutupKuis(); }, benar ? 700 : 1700);
 }
 
 /* ================= INPUT DESKTOP ================= */
 const layar = renderer.domElement;
 let tanpaKunci = false;
 function modeTanpaKunci() {
-  tanpaKunci = true; terkunci = true; $('klikMain').classList.add('hidden');
+  tanpaKunci = true; terkunci = true;
   tampilPetunjuk('Mouse tidak bisa dikunci di sini. Gerakkan mouse atau panah kiri/kanan untuk menoleh.', 4500);
 }
 function kunci() {
   if (!main || kuisBuka || isMobile || !$('konfirmasi').classList.contains('hidden')) return;
-  if (tanpaKunci) { terkunci = true; $('klikMain').classList.add('hidden'); return; }
+  if (tanpaKunci) { terkunci = true; return; }
   try { const p = layar.requestPointerLock(); if (p && p.catch) p.catch(modeTanpaKunci); } catch (e) { modeTanpaKunci(); }
 }
 layar.addEventListener('click', kunci);
-$('klikMain').addEventListener('click', kunci);
 document.addEventListener('pointerlockerror', () => { if (!tanpaKunci) modeTanpaKunci(); });
 document.addEventListener('pointerlockchange', () => {
   if (isMobile) return;
   terkunci = document.pointerLockElement === layar;
-  $('klikMain').classList.toggle('hidden', terkunci || !main || kuisBuka || !$('konfirmasi').classList.contains('hidden'));
   if (!terkunci) { mouseTekan = false; for (const k in tombol) tombol[k] = false; }
 });
 document.addEventListener('mousemove', (e) => {
-  if (!terkunci || isMobile) return;
+  if (!terkunci || isMobile || kuisBuka) return;
   aku.yaw -= e.movementX * 0.0022;
   aku.pitch = Math.max(-1.2, Math.min(1.0, aku.pitch - e.movementY * 0.0022));
 });
 document.addEventListener('mousedown', (e) => { if (!isMobile && terkunci && e.button === 0 && e.target === layar) { mouseTekan = true; tembak(); } });
 document.addEventListener('mouseup', (e) => { if (e.button === 0) mouseTekan = false; });
 document.addEventListener('keydown', (e) => {
-  if (kuisBuka) { if (e.key >= '1' && e.key <= '4') jawab(Number(e.key) - 1); if (e.key === 'Escape') tutupKuis(); return; }
+  if (kuisBuka) {
+    if (sudahDijawab && !/^Key[WASD]$|^Shift|^Space$/.test(e.code)) { tutupKuis(); return; }
+    if (e.key >= '1' && e.key <= '4') { jawab(Number(e.key) - 1); return; }
+    if (e.key === 'Escape') { tutupKuis(); return; }
+    if (/^Key[WASD]$|^Shift|^Space$/.test(e.code)) { tombol[e.code] = true; if (e.code === 'Space') e.preventDefault(); }
+    return;
+  }
   if (!main || document.activeElement.tagName === 'INPUT') return;
-  if (e.key === 'Escape' && tanpaKunci) { terkunci = false; mouseTekan = false; $('klikMain').classList.remove('hidden'); return; }
+  if (e.key === 'Escape' && tanpaKunci) { terkunci = false; mouseTekan = false; return; }
   tombol[e.code] = true;
   if (e.code === 'KeyR') bukaKuis();
   if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
@@ -1559,6 +1656,7 @@ tombolMobile('mbTembak', () => { mouseTekan = true; tembak(); }, () => { mouseTe
 tombolMobile('mbLompat', () => { lompatMobile = true; }, () => { lompatMobile = false; });
 tombolMobile('mbSprint', () => { sprintMobile = !sprintMobile; $('mbSprint').classList.toggle('aktif', sprintMobile); });
 tombolMobile('mbIsi', () => bukaKuis());
+$('kuis').addEventListener('pointerdown', (e) => { if (sudahDijawab && kuisBuka) tutupKuis(); });
 
 /* ================= TEMBAK ================= */
 const ray = new THREE.Raycaster();
@@ -1607,11 +1705,11 @@ function cobaGeser(dx, dz) {
 }
 function bacaInput() {
   const i = { maju: 0, samping: 0, lari: false, lompat: false };
-  if (!terkunci || aku.mati || kuisBuka || !main) return i;
+  if (!main || aku.mati || (!terkunci && !kuisBuka)) return i;
   if (joy.id !== null) { i.maju = -joy.y; i.samping = joy.x; }
   else { i.maju = (tombol.KeyW ? 1 : 0) - (tombol.KeyS ? 1 : 0); i.samping = (tombol.KeyD ? 1 : 0) - (tombol.KeyA ? 1 : 0); }
   i.lari = !!(tombol.ShiftLeft || tombol.ShiftRight || sprintMobile);
-  i.lompat = !!(tombol.Space || lompatMobile);
+  i.lompat = !!(tombol.Space || lompatMobile) && !kuisBuka;
   return i;
 }
 let lajuAku = 0;
