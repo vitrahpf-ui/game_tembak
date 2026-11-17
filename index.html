@@ -48,6 +48,36 @@
   .btn.oranye { background:var(--oranye); box-shadow:0 5px 0 #b9770e; }
   .btn.merah { background:var(--merah); box-shadow:0 5px 0 #a93226; }
   .btn.abu { background:#94a3b8; box-shadow:0 5px 0 #64748b; }
+  .btn.ungu { background:linear-gradient(90deg,#8e44ad,#e84393); box-shadow:0 5px 0 #6c3483; }
+  #kustom { background:rgba(8,12,30,.72); z-index:40; padding:12px; touch-action:pan-y; }
+  .kustomKartu { width:min(900px,97vw) !important; max-height:95vh; overflow-y:auto; touch-action:pan-y; padding:18px 20px !important; }
+  .kustomGrid { display:grid; grid-template-columns:300px 1fr; gap:16px; margin:8px 0 4px; }
+  .previewBox { position:relative; border-radius:18px; background:radial-gradient(circle at 50% 35%, #e0f2ff 0%, #9fd3ff 55%, #5aa9e6 100%); min-height:380px; overflow:hidden; box-shadow:inset 0 -40px 60px rgba(0,0,0,.12); }
+  #previewCanvas { position:absolute; inset:0; width:100%; height:100%; cursor:grab; touch-action:none; }
+  .pvTips { position:absolute; bottom:10px; left:0; right:0; text-align:center; font-size:12px; color:#1e3a5f; font-weight:600; pointer-events:none; }
+  .mini2 { position:absolute; top:10px; right:10px; border:0; background:#fff; color:var(--navy); border-radius:10px; padding:7px 12px; font-weight:700; box-shadow:0 3px 0 rgba(0,0,0,.15); }
+  .opsiGrup { margin-bottom:12px; }
+  .kustomKartu > .duaBtn { position:sticky; bottom:-18px; background:#fff; padding:6px 0 14px; margin-bottom:-6px; z-index:2; }
+  .kustomKartu > .duaBtn .btn { margin-top:8px; }
+  .opsiGrup label { display:block; font-size:13px; font-weight:700; color:#475569; margin-bottom:6px; }
+  .opsiGrup label small { font-weight:500; color:#94a3b8; }
+  .swatches { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  .sw { position:relative; width:30px; height:30px; border-radius:50%; border:2px solid rgba(0,0,0,.15); padding:0; overflow:hidden; }
+  .sw.aktif { outline:3px solid var(--navy); outline-offset:2px; }
+  .sw.pelangi { background:conic-gradient(#ff3b3b,#ffb03b,#fff23b,#3bff6c,#3bd5ff,#5b3bff,#ff3bd5,#ff3b3b); }
+  .sw.pelangi input { position:absolute; inset:-6px; width:44px; height:44px; opacity:0; cursor:pointer; }
+  .sw.pelangi i { position:absolute; inset:7px; border-radius:50%; border:2px solid #fff; }
+  .itemGrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(78px,1fr)); gap:6px; }
+  .item { border:2px solid #e2e8f0; background:#f8fafc; border-radius:12px; padding:6px 4px; color:#334155; font-size:12px; font-weight:600; line-height:1.2; }
+  .item b { display:block; font-size:22px; margin-bottom:2px; }
+  .item.aktif { border-color:var(--navy); background:#e8eefc; color:var(--navy); }
+  @media (max-width: 700px), (max-height: 520px) {
+    .kustomGrid { grid-template-columns:1fr; }
+    .previewBox { min-height:220px; }
+  }
+  body.mobile .kustomGrid { grid-template-columns:240px 1fr; }
+  body.mobile .previewBox { min-height:240px; }
+  @media (orientation: portrait) { body.mobile .kustomGrid { grid-template-columns:1fr; } }
   .btn.tipis { font-size:15px; padding:11px; margin-top:12px; }
   #kodeInput { text-transform:uppercase; letter-spacing:10px; text-align:center; font-weight:700; font-size:30px; padding:14px; }
   .info { font-size:13px; color:#64748b; margin:10px 0 0; text-align:center; }
@@ -232,6 +262,7 @@
         <div><label>Nama kamu</label><input id="namaInput" maxlength="14" placeholder="Misal: Fulan"></div>
         <button class="ikonL" id="btnSuaraLobby" title="Musik">🎵</button>
       </div>
+      <button class="btn ungu tipis" id="btnKustom">🎨 Kustom Karakter</button>
       <div class="tabs"><button class="tab aktif" data-tab="buat">🏠 Buat Room</button><button class="tab" data-tab="gabung">🔑 Gabung Room</button></div>
       <div id="tabBuat">
         <label>Pilih map</label>
@@ -305,6 +336,23 @@
     <h3>Keluar ke menu utama?</h3>
     <p>Kamu akan keluar dari room ini dan skor ronde ini hilang.</p>
     <div class="duaBtn"><button class="btn abu" id="btnBatalKeluar">Batal</button><button class="btn merah" id="btnYaKeluar">Ya, keluar</button></div>
+  </div>
+</div>
+
+<div id="kustom" class="overlay hidden">
+  <div class="kartu kustomKartu">
+    <div class="pdHead"><span style="font-size:30px">🎨</span><h3>Kustom Karakter</h3><button class="pdTutup" id="btnTutupKustom">✕</button></div>
+    <div class="kustomGrid">
+      <div class="previewBox"><canvas id="previewCanvas"></canvas><div class="pvTips">↔ Geser untuk memutar</div><button class="mini2" id="btnAcak">🎲 Acak</button></div>
+      <div class="opsiBox">
+        <div class="opsiGrup"><label>Warna kulit <small>(bebas, klik 🌈 untuk warna apa saja)</small></label><div class="swatches" id="swKulit"></div></div>
+        <div class="opsiGrup"><label>Topi</label><div class="itemGrid" id="pilTopi"></div><div class="swatches" id="swTopi"></div></div>
+        <div class="opsiGrup"><label>Baju</label><div class="itemGrid" id="pilBaju"></div><div class="swatches" id="swBaju"></div></div>
+        <div class="opsiGrup"><label>Celana</label><div class="swatches" id="swCelana"></div></div>
+        <div class="opsiGrup"><label>Kacamata</label><div class="itemGrid kecil3" id="pilKacamata"></div></div>
+      </div>
+    </div>
+    <div class="duaBtn"><button class="btn abu" id="btnBatalKustom">Batal</button><button class="btn" id="btnSimpanKustom">💾 Simpan Karakter</button></div>
   </div>
 </div>
 
@@ -878,19 +926,159 @@ function bangunMap(id) {
   if (AU.timer) AU.lagu = LAGU[id];
 }
 
-/* ================= KARAKTER ================= */
-function teksturWajah() {
-  const [c, g] = kanvas(128, 128);
-  g.fillStyle = '#f5cd30'; g.fillRect(0, 0, 128, 128);
-  g.fillStyle = '#1e1e1e';
-  g.beginPath(); g.ellipse(44, 52, 7, 12, 0, 0, 7); g.fill();
-  g.beginPath(); g.ellipse(84, 52, 7, 12, 0, 0, 7); g.fill();
-  g.fillStyle = '#fff'; g.beginPath(); g.arc(46, 47, 3, 0, 7); g.arc(86, 47, 3, 0, 7); g.fill();
-  g.lineWidth = 6; g.strokeStyle = '#1e1e1e'; g.lineCap = 'round';
-  g.beginPath(); g.arc(64, 72, 22, 0.2 * Math.PI, 0.8 * Math.PI); g.stroke();
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+/* ================= KARAKTER & KUSTOM ================= */
+const HEX = /^#[0-9a-fA-F]{6}$/;
+const JENIS_TOPI = { none: ['🚫', 'Tanpa'], baseball: ['🧢', 'Baseball'], koboi: ['🤠', 'Koboi'], mahkota: ['👑', 'Mahkota'], peci: ['🎩', 'Peci'], pesta: ['🥳', 'Pesta'], helm: ['⛑️', 'Helm'], penyihir: ['🧙', 'Penyihir'], kupluk: ['🧶', 'Kupluk'], headphone: ['🎧', 'Headphone'] };
+const GAYA_BAJU = { polos: ['👕', 'Kaos Polos'], garis: ['🦓', 'Kaos Garis'], jersey: ['⚽', 'Jersey'], jaket: ['🧥', 'Jaket'], hoodie: ['🧣', 'Hoodie'], kemeja: ['👔', 'Kemeja Dasi'], koko: ['🕌', 'Baju Koko'], rompi: ['🦺', 'Rompi'] };
+const LENGAN_PANJANG = { jaket: 1, hoodie: 1, kemeja: 1, koko: 1 };
+const KACAMATA = { none: ['🚫', 'Tanpa'], hitam: ['🕶️', 'Hitam'], bulat: ['👓', 'Bulat'] };
+const PRESET_KULIT = ['#f5cd30', '#ffdbac', '#f1c27d', '#e0ac69', '#c68642', '#8d5524', '#5c3a1e', '#ff9ecb', '#7ed957', '#6ec6ff', '#b58cff', '#ffffff'];
+const PRESET_WARNA = ['#e74c3c', '#ff7a1a', '#f1c40f', '#2ecc71', '#1abc9c', '#3498db', '#2b4a8b', '#9b59b6', '#ff6fb5', '#ffffff', '#95a5a6', '#2d3436', '#8d6e63', '#111111'];
+const AV_DEFAULT = { k: '#f5cd30', b: '#e74c3c', bs: 'polos', c: '#2b4a8b', h: 'none', hc: '#3498db', g: 'none' };
+function rapikanAv(a) {
+  a = a && typeof a === 'object' ? a : {};
+  const d = AV_DEFAULT, w = (v, x) => (HEX.test(v) ? v : x);
+  return { k: w(a.k, d.k), b: w(a.b, d.b), bs: GAYA_BAJU[a.bs] ? a.bs : d.bs, c: w(a.c, d.c), h: JENIS_TOPI[a.h] ? a.h : 'none', hc: w(a.hc, d.hc), g: KACAMATA[a.g] ? a.g : 'none' };
 }
-const TEX_WAJAH = teksturWajah();
+const pilihAcak = (arr) => arr[Math.floor(Math.random() * arr.length)];
+function acakAv() {
+  return { k: pilihAcak(PRESET_KULIT), b: pilihAcak(PRESET_WARNA), bs: pilihAcak(Object.keys(GAYA_BAJU)), c: pilihAcak(PRESET_WARNA), h: pilihAcak(Object.keys(JENIS_TOPI)), hc: pilihAcak(PRESET_WARNA), g: Math.random() < 0.3 ? pilihAcak(['hitam', 'bulat']) : 'none' };
+}
+let avSaya = (() => { try { return rapikanAv(JSON.parse(ls.get('avatar', 'null'))); } catch (e) { return { ...AV_DEFAULT }; } })();
+
+const geser = (hex, l) => '#' + new THREE.Color(hex).offsetHSL(0, 0, l).getHexString();
+const cacheTex = {};
+function tekstur(kunci, gambar) {
+  if (cacheTex[kunci]) return cacheTex[kunci];
+  const [c, g] = kanvas(128, 128); gambar(g);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return (cacheTex[kunci] = t);
+}
+function teksturWajah(kulit) {
+  return tekstur('wajah' + kulit, (g) => {
+    g.fillStyle = kulit; g.fillRect(0, 0, 128, 128);
+    const gelap = new THREE.Color(kulit).getHSL({}).l < 0.35;
+    g.fillStyle = gelap ? '#0b0b0b' : '#1e1e1e';
+    g.beginPath(); g.ellipse(44, 52, 7, 12, 0, 0, 7); g.fill();
+    g.beginPath(); g.ellipse(84, 52, 7, 12, 0, 0, 7); g.fill();
+    g.fillStyle = '#fff'; g.beginPath(); g.arc(46, 47, 3, 0, 7); g.arc(86, 47, 3, 0, 7); g.fill();
+    g.lineWidth = 6; g.strokeStyle = gelap ? '#0b0b0b' : '#1e1e1e'; g.lineCap = 'round';
+    g.beginPath(); g.arc(64, 72, 22, 0.2 * Math.PI, 0.8 * Math.PI); g.stroke();
+  });
+}
+function bintangKecil(g, x, y, r, warna) {
+  g.fillStyle = warna; g.beginPath();
+  for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? r * 0.45 : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+  g.fill();
+}
+// Tekstur badan: bagian 'd' depan, 'b' belakang, 's' samping
+function teksturBaju(gaya, warna, bagian) {
+  return tekstur(`baju${gaya}${warna}${bagian}`, (g) => {
+    const gelap = geser(warna, -0.14), terang = geser(warna, 0.16);
+    const dasar = gaya === 'rompi' ? '#f4f4f4' : warna;
+    g.fillStyle = dasar; g.fillRect(0, 0, 128, 128);
+    g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(0, 116, 128, 12);
+    if (gaya === 'garis') { g.fillStyle = 'rgba(255,255,255,.85)'; for (let y = 10; y < 116; y += 20) g.fillRect(0, y, 128, 9); }
+    if (bagian === 's') {
+      if (gaya === 'jersey') { g.fillStyle = '#fff'; g.fillRect(52, 0, 24, 128); }
+      if (gaya === 'rompi') { g.fillStyle = warna; g.fillRect(0, 0, 128, 128); }
+      return;
+    }
+    if (bagian === 'b') {
+      if (gaya === 'jersey') { g.font = '700 64px Fredoka, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 6; g.strokeStyle = gelap; g.strokeText('10', 64, 66); g.fillStyle = '#fff'; g.fillText('10', 64, 66); }
+      if (gaya === 'hoodie') { g.fillStyle = gelap; g.beginPath(); g.moveTo(24, 0); g.lineTo(104, 0); g.lineTo(84, 40); g.lineTo(44, 40); g.fill(); }
+      if (gaya === 'rompi') { g.fillStyle = warna; g.fillRect(0, 0, 128, 128); }
+      if (gaya === 'jaket') { g.fillStyle = gelap; g.fillRect(0, 0, 128, 14); }
+      return;
+    }
+    switch (gaya) {
+      case 'polos': bintangKecil(g, 92, 38, 14, 'rgba(255,255,255,.9)'); g.fillStyle = gelap; g.fillRect(44, 0, 40, 8); break;
+      case 'garis': g.fillStyle = gelap; g.fillRect(44, 0, 40, 8); break;
+      case 'jersey':
+        g.fillStyle = '#fff'; g.beginPath(); g.moveTo(40, 0); g.lineTo(64, 26); g.lineTo(88, 0); g.lineTo(78, 0); g.lineTo(64, 15); g.lineTo(50, 0); g.fill();
+        g.font = '700 54px Fredoka, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 5; g.strokeStyle = gelap; g.strokeText('10', 64, 74); g.fillStyle = '#fff'; g.fillText('10', 64, 74);
+        g.fillRect(0, 0, 8, 128); g.fillRect(120, 0, 8, 128); break;
+      case 'jaket':
+        g.fillStyle = gelap; g.beginPath(); g.moveTo(30, 0); g.lineTo(62, 30); g.lineTo(62, 0); g.fill(); g.beginPath(); g.moveTo(98, 0); g.lineTo(66, 30); g.lineTo(66, 0); g.fill();
+        g.fillStyle = '#c9ced6'; g.fillRect(62, 0, 4, 116); for (let y = 4; y < 116; y += 6) g.fillRect(59, y, 10, 2);
+        g.fillStyle = gelap; g.fillRect(14, 74, 30, 4); g.fillRect(84, 74, 30, 4); g.fillRect(0, 108, 128, 20); break;
+      case 'hoodie':
+        g.fillStyle = gelap; g.beginPath(); g.roundRect(30, 70, 68, 38, 10); g.fill();
+        g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.moveTo(54, 0); g.lineTo(52, 40); g.moveTo(74, 0); g.lineTo(76, 40); g.stroke();
+        g.fillStyle = '#fff'; g.beginPath(); g.arc(52, 42, 3, 0, 7); g.arc(76, 42, 3, 0, 7); g.fill();
+        g.fillStyle = gelap; g.fillRect(0, 112, 128, 16); break;
+      case 'kemeja':
+        g.fillStyle = gelap; g.fillRect(63, 0, 2, 128);
+        g.fillStyle = '#f7f7f7'; g.beginPath(); g.moveTo(38, 0); g.lineTo(60, 24); g.lineTo(64, 0); g.fill(); g.beginPath(); g.moveTo(90, 0); g.lineTo(68, 24); g.lineTo(64, 0); g.fill();
+        g.fillStyle = '#c0392b'; g.beginPath(); g.moveTo(58, 6); g.lineTo(70, 6); g.lineTo(67, 16); g.lineTo(61, 16); g.fill();
+        g.beginPath(); g.moveTo(61, 16); g.lineTo(67, 16); g.lineTo(72, 92); g.lineTo(64, 102); g.lineTo(56, 92); g.fill();
+        g.fillStyle = gelap; g.fillRect(18, 40, 24, 3); break;
+      case 'koko':
+        g.fillStyle = terang; g.fillRect(52, 0, 24, 60);
+        g.strokeStyle = '#e6b422'; g.lineWidth = 3; g.strokeRect(52, 0, 24, 60); g.strokeRect(40, 0, 48, 6);
+        g.fillStyle = '#e6b422'; for (const y of [16, 30, 44]) { g.beginPath(); g.arc(64, y, 3.5, 0, 7); g.fill(); }
+        g.strokeStyle = 'rgba(230,180,34,.8)'; g.lineWidth = 2; g.beginPath(); for (let x = 0; x <= 128; x += 8) g.lineTo(x, 110 + (x % 16 ? 4 : -4)); g.stroke(); break;
+      case 'rompi':
+        g.fillStyle = warna; g.beginPath(); g.moveTo(0, 0); g.lineTo(44, 0); g.lineTo(62, 70); g.lineTo(62, 128); g.lineTo(0, 128); g.fill();
+        g.beginPath(); g.moveTo(128, 0); g.lineTo(84, 0); g.lineTo(66, 70); g.lineTo(66, 128); g.lineTo(128, 128); g.fill();
+        g.fillStyle = '#f4f4f4'; g.globalAlpha = 0.9; for (const y of [82, 98, 114]) { g.beginPath(); g.arc(58, y, 3, 0, 7); g.fill(); } g.globalAlpha = 1;
+        g.fillStyle = gelap; g.fillRect(14, 84, 26, 3); g.fillRect(88, 84, 26, 3); break;
+    }
+  });
+}
+
+// Topi: dibangun relatif ke puncak kepala (y = 2.8)
+function buatTopi(jenis, warna) {
+  const g = new THREE.Group(); if (jenis === 'none') return g;
+  const m = new THREE.MeshLambertMaterial({ color: warna });
+  const gelap = new THREE.MeshLambertMaterial({ color: geser(warna, -0.18) });
+  const add = (geo, mat, x, y, z) => { const me = new THREE.Mesh(geo, mat); me.position.set(x, y, z); me.castShadow = true; g.add(me); return me; };
+  const B = (w, h, d) => new THREE.BoxGeometry(w, h, d);
+  switch (jenis) {
+    case 'baseball': add(B(0.86, 0.26, 0.86), m, 0, 0.1, 0); add(B(0.86, 0.06, 0.42), gelap, 0, -0.01, -0.6); add(B(0.12, 0.06, 0.12), gelap, 0, 0.26, 0); break;
+    case 'koboi': add(B(1.5, 0.06, 1.5), m, 0, 0.02, 0); add(B(0.78, 0.42, 0.78), m, 0, 0.25, 0); add(B(0.8, 0.09, 0.8), gelap, 0, 0.1, 0); break;
+    case 'mahkota': {
+      const emas = new THREE.MeshStandardMaterial({ color: '#ffcf3f', metalness: 0.75, roughness: 0.25 });
+      for (const [x, z, w, d] of [[0, 0.38, 0.84, 0.06], [0, -0.38, 0.84, 0.06], [0.38, 0, 0.06, 0.84], [-0.38, 0, 0.06, 0.84]]) add(B(w, 0.18, d), emas, x, 0.07, z);
+      for (const [x, z] of [[-0.38, -0.38], [0, -0.38], [0.38, -0.38], [-0.38, 0.38], [0, 0.38], [0.38, 0.38], [-0.38, 0], [0.38, 0]]) add(B(0.1, 0.18, 0.1), emas, x, 0.24, z);
+      add(B(0.12, 0.12, 0.04), new THREE.MeshBasicMaterial({ color: warna }), 0, 0.08, -0.42); break;
+    }
+    case 'peci': add(B(0.84, 0.3, 0.84), m, 0, 0.1, 0); add(B(0.86, 0.04, 0.86), gelap, 0, -0.02, 0); break;
+    case 'pesta': {
+      const c = add(new THREE.ConeGeometry(0.34, 0.8, 16), m, 0, 0.4, 0);
+      c.rotation.z = 0.12; add(new THREE.SphereGeometry(0.09, 10, 8), new THREE.MeshLambertMaterial({ color: '#ffffff' }), -0.05, 0.82, 0);
+      for (let i = 0; i < 3; i++) add(new THREE.TorusGeometry(0.3 - i * 0.09, 0.025, 6, 20), gelap, 0, 0.12 + i * 0.2, 0).rotation.x = Math.PI / 2; break;
+    }
+    case 'helm': add(B(0.94, 0.42, 0.94), m, 0, 0.08, 0.02); add(B(0.94, 0.3, 0.06), new THREE.MeshStandardMaterial({ color: '#1b2a4a', metalness: 0.5, roughness: 0.2, transparent: true, opacity: 0.75 }), 0, -0.2, -0.47); add(B(0.12, 0.12, 0.96), gelap, 0, 0.3, 0.02); break;
+    case 'penyihir': {
+      add(new THREE.CylinderGeometry(0.8, 0.8, 0.05, 24), m, 0, 0.02, 0);
+      const k = add(new THREE.ConeGeometry(0.42, 1.15, 16), m, 0, 0.6, 0); k.rotation.z = -0.18; k.position.x = 0.06;
+      add(new THREE.CylinderGeometry(0.43, 0.43, 0.1, 16), gelap, 0, 0.1, 0);
+      bintangTopi(g, warna); break;
+    }
+    case 'kupluk': add(B(0.88, 0.34, 0.88), m, 0, 0.12, 0); add(B(0.9, 0.1, 0.9), gelap, 0, -0.03, 0); add(new THREE.SphereGeometry(0.14, 10, 8), new THREE.MeshLambertMaterial({ color: '#ffffff' }), 0, 0.35, 0); break;
+    case 'headphone': add(B(0.1, 0.1, 0.1), m, 0, 0.06, 0); add(B(0.96, 0.08, 0.14), m, 0, 0.04, 0); for (const s of [-1, 1]) { add(B(0.08, 0.36, 0.14), m, s * 0.46, -0.16, 0); add(B(0.12, 0.3, 0.3), gelap, s * 0.48, -0.4, 0); } break;
+  }
+  return g;
+}
+function bintangTopi(g, warna) {
+  const s = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.02), new THREE.MeshBasicMaterial({ color: '#ffe14d' }));
+  s.position.set(0.02, 0.45, -0.36); s.rotation.z = Math.PI / 4; g.add(s);
+}
+function buatKacamata(jenis) {
+  const g = new THREE.Group(); if (jenis === 'none') return g;
+  const hitam = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.2, metalness: 0.6 });
+  if (jenis === 'hitam') {
+    for (const s of [-1, 1]) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.15, 0.04), hitam); l.position.set(s * 0.17, 0, 0); g.add(l); }
+    const j = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.04, 0.04), hitam); g.add(j);
+  } else {
+    for (const s of [-1, 1]) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.022, 6, 20), hitam); r.position.set(s * 0.17, 0, 0); g.add(r); }
+    const j = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.025, 0.025), hitam); g.add(j);
+  }
+  g.position.set(0, 2.47, -0.42);
+  return g;
+}
+
 const MAT_PISTOL = new THREE.MeshStandardMaterial({ color: '#2a2a2a', roughness: 0.4, metalness: 0.5 });
 
 function labelNama() {
@@ -900,6 +1088,7 @@ function labelNama() {
   s.scale.set(0.27, 0.135, 1); s.renderOrder = 10; s.userData = { c, g, t };
   return s;
 }
+
 function gambarLabel(s, nama, hp, warna) {
   const { g, t } = s.userData;
   g.clearRect(0, 0, 256, 128);
@@ -926,28 +1115,41 @@ function gambarLabel(s, nama, hp, warna) {
   t.needsUpdate = true;
 }
 
-function buatKarakter(warna, nama, denganLabel = true) {
+function buatKarakter(warna, nama, denganLabel = true, avIn, target = scene) {
+  const av = rapikanAv(avIn);
   const g = new THREE.Group();
-  const kulit = new THREE.MeshLambertMaterial({ color: '#f5cd30' });
-  const wajah = new THREE.MeshLambertMaterial({ map: TEX_WAJAH });
-  const baju = new THREE.MeshLambertMaterial({ color: warna });
-  const celana = new THREE.MeshLambertMaterial({ color: '#2b4a8b' });
+  const L = (o) => new THREE.MeshLambertMaterial(o);
+  const kulit = L({ color: av.k });
+  const wajah = L({ map: teksturWajah(av.k) });
+  const bajuS = L({ map: teksturBaju(av.bs, av.b, 's') }), bajuD = L({ map: teksturBaju(av.bs, av.b, 'd') }), bajuB = L({ map: teksturBaju(av.bs, av.b, 'b') });
+  const bajuAtas = L({ color: av.bs === 'rompi' ? av.b : geser(av.b, -0.06) });
+  const lenganMat = L({ color: av.bs === 'rompi' ? '#f4f4f4' : av.b });
+  const celana = L({ color: av.c });
   const box = (w, h, d, m) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); me.castShadow = true; return me; };
-  const kaki = (x) => { const p = new THREE.Group(); const k = box(0.48, 1, 0.5, celana); k.position.y = -0.5; p.add(k); p.position.set(x, 1, 0); g.add(p); return p; };
+  const kaki = (x) => { const p = new THREE.Group(); const k = box(0.48, 1, 0.5, celana); k.position.y = -0.5; p.add(k); const sp = box(0.5, 0.16, 0.56, L({ color: geser(av.c, -0.25) })); sp.position.set(0, -0.92, -0.03); p.add(sp); p.position.set(x, 1, 0); g.add(p); return p; };
   const kakiL = kaki(-0.25), kakiR = kaki(0.25);
-  const badan = box(1, 1, 0.5, baju); badan.position.y = 1.5; g.add(badan);
-  const lengan = (x) => { const p = new THREE.Group(); const l = box(0.45, 1, 0.45, kulit); l.position.y = -0.45; p.add(l); p.position.set(x, 1.95, 0); g.add(p); return p; };
+  const badan = box(1, 1, 0.5, [bajuS, bajuS, bajuAtas, bajuAtas, bajuB, bajuD]); badan.position.y = 1.5; g.add(badan);
+  const panjang = LENGAN_PANJANG[av.bs];
+  const lengan = (x) => {
+    const p = new THREE.Group();
+    if (panjang) { const l = box(0.45, 0.8, 0.45, lenganMat); l.position.y = -0.35; p.add(l); const t2 = box(0.43, 0.22, 0.43, kulit); t2.position.y = -0.86; p.add(t2); }
+    else { const l = box(0.45, 1, 0.45, kulit); l.position.y = -0.45; p.add(l); const sl = box(0.5, 0.36, 0.5, lenganMat); sl.position.y = -0.13; p.add(sl); }
+    p.position.set(x, 1.95, 0); g.add(p); return p;
+  };
   const lenganL = lengan(-0.73), lenganR = lengan(0.73);
   const pistol = box(0.22, 0.75, 0.3, MAT_PISTOL); pistol.position.set(0, -1.05, 0.05); lenganR.add(pistol);
   const laras = box(0.12, 0.3, 0.12, MAT_PISTOL); laras.position.set(0, -1.5, 0.05); lenganR.add(laras);
   const ujung = new THREE.Object3D(); ujung.position.set(0, -1.7, 0.05); lenganR.add(ujung);
   lenganR.rotation.x = Math.PI / 2;
   const kepala = box(0.8, 0.8, 0.8, [kulit, kulit, kulit, kulit, kulit, wajah]); kepala.position.y = 2.4; g.add(kepala);
+  if (av.bs === 'hoodie') { const tudung = box(0.86, 0.46, 0.22, lenganMat); tudung.position.set(0, 2.15, 0.42); g.add(tudung); }
+  const topi = buatTopi(av.h, av.hc); topi.position.y = 2.8; g.add(topi);
+  g.add(buatKacamata(av.g));
   let label = null;
-  if (denganLabel) { label = labelNama(); label.position.y = 3.5; g.add(label); gambarLabel(label, nama, 100, warna); }
+  if (denganLabel) { label = labelNama(); label.position.y = { penyihir: 4.3, pesta: 4.0, koboi: 3.85 }[av.h] || 3.65; g.add(label); gambarLabel(label, nama, 100, warna); }
   g.rotation.order = 'YXZ';
-  g.userData = { kakiL, kakiR, lenganL, lenganR, ujung, fase: 0, flash: 0, mats: [kulit, baju, celana], label };
-  scene.add(g);
+  g.userData = { kakiL, kakiR, lenganL, lenganR, ujung, fase: 0, flash: 0, mats: [kulit, bajuS, bajuD, bajuB, bajuAtas, lenganMat, celana], label };
+  target.add(g);
   return g;
 }
 function animasiJalan(g, kecepatan, dt) {
@@ -1198,7 +1400,7 @@ function kirimPresence() {
   if (!grup) return;
   const f = (v) => Math.round(v * 100) / 100;
   grup.presence({
-    n: aku.nama, w: aku.warna, t: aku.topik, mp: mapTetap ? mapAktif : null,
+    n: aku.nama, w: aku.warna, av: avSaya, t: aku.topik, mp: mapTetap ? mapAktif : null,
     x: f(aku.pos.x), y: f(aku.pos.y), z: f(aku.pos.z), ry: f(aku.yaw),
     hp: aku.hp, m: aku.mati ? 1 : 0, s: aku.skor, b: aku.benar, r: aku.ronde,
     h: net.h, tn: net.tn, tt: net.tt, hu: net.hu, d: net.d, k: net.k,
@@ -1284,7 +1486,7 @@ function mulaiLatihan() {
   mulaiGame();
   NAMA_BOT.forEach((n, i) => {
     const [x, z] = spawnAman();
-    const o = tambahPemain('bot' + i, n, WARNA[i + 1], { x, y: 0, z, ry: 0 });
+    const o = tambahPemain('bot' + i, n, WARNA[i + 1], { x, y: 0, z, ry: 0, av: acakAv() });
     Object.assign(o, { bot: true, hp: 100, arah: Math.random() * 6.28, gantiArah: 0, tembakT: 2 + Math.random() * 3 });
   });
 }
@@ -1333,7 +1535,7 @@ function kenaBot(o, titik) {
 
 /* ================= GAME ================= */
 function tambahPemain(id, nama, warna, p) {
-  const group = buatKarakter(warna, nama);
+  const group = buatKarakter(warna, nama, true, p.av);
   group.position.set(p.x, p.y || 0, p.z);
   group.traverse((o) => { o.userData.pid = id; });
   lain[id] = { id, group, target: new THREE.Vector3(p.x, p.y || 0, p.z), ry: p.ry || 0, nama, warna, mati: false, hp: 100, skor: 0, benar: 0, ronde: 0 };
@@ -1365,7 +1567,7 @@ function mulaiGame() {
   sesi++;
   aku.nama = ambilNama();
   aku.skor = 0; aku.benar = 0; menangTampil = false;
-  aku.group = buatKarakter(aku.warna, aku.nama, false);
+  aku.group = buatKarakter(aku.warna, aku.nama, false, avSaya);
   taruhAku();
   updateInfoRoom();
   $('targetTeks').textContent = `Target ${TARGET_KILL} kill`;
@@ -1462,6 +1664,81 @@ $('btnGabung').onclick = () => {
   masukOnline(kode, false);
 };
 $('btnLatihan').onclick = mulaiLatihan;
+/* ---------- KUSTOM KARAKTER ---------- */
+let draft = { ...avSaya }, pv = null;
+function swatchRow(el, preset, nilai, pilih) {
+  el.innerHTML = '';
+  const cocok = preset.some((w) => w.toLowerCase() === nilai.toLowerCase());
+  for (const w of preset) {
+    const b = document.createElement('button'); b.className = 'sw' + (w.toLowerCase() === nilai.toLowerCase() ? ' aktif' : ''); b.style.background = w; b.title = w;
+    b.onclick = () => { pilih(w); sfx('klik'); }; el.appendChild(b);
+  }
+  const lb = document.createElement('label'); lb.className = 'sw pelangi' + (cocok ? '' : ' aktif'); lb.title = 'Pilih warna bebas';
+  const dot = document.createElement('i'); if (!cocok) dot.style.background = nilai;
+  const inp = document.createElement('input'); inp.type = 'color'; inp.value = nilai;
+  inp.oninput = () => { pilih(inp.value, true); dot.style.background = inp.value; };
+  inp.onchange = () => pilih(inp.value);
+  lb.append(dot, inp); el.appendChild(lb);
+}
+function itemGrid(el, peta, nilai, pilih) {
+  el.innerHTML = '';
+  for (const [id, [em, nm]] of Object.entries(peta)) {
+    const b = document.createElement('button'); b.className = 'item' + (id === nilai ? ' aktif' : '');
+    const e = document.createElement('b'); e.textContent = em; b.append(e, nm);
+    b.onclick = () => { pilih(id); sfx('klik'); }; el.appendChild(b);
+  }
+}
+function renderKustom() {
+  const set = (k) => (v, live) => { draft[k] = v; perbaruiPreview(); if (!live) renderKustom(); };
+  swatchRow($('swKulit'), PRESET_KULIT, draft.k, set('k'));
+  itemGrid($('pilTopi'), JENIS_TOPI, draft.h, set('h'));
+  $('swTopi').classList.toggle('hidden', draft.h === 'none');
+  swatchRow($('swTopi'), PRESET_WARNA, draft.hc, set('hc'));
+  itemGrid($('pilBaju'), GAYA_BAJU, draft.bs, set('bs'));
+  swatchRow($('swBaju'), PRESET_WARNA, draft.b, set('b'));
+  swatchRow($('swCelana'), PRESET_WARNA, draft.c, set('c'));
+  itemGrid($('pilKacamata'), KACAMATA, draft.g, set('g'));
+}
+function siapkanPreview() {
+  if (pv) return;
+  const cv = $('previewCanvas');
+  const r = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+  r.setPixelRatio(Math.min(devicePixelRatio, 2)); r.shadowMap.enabled = true;
+  const sc = new THREE.Scene();
+  sc.add(new THREE.HemisphereLight('#ffffff', '#8899aa', 2.1));
+  const dl = new THREE.DirectionalLight('#ffffff', 1.8); dl.position.set(3, 6, -5); dl.castShadow = true; sc.add(dl);
+  const alas = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.7, 0.2, 40), new THREE.MeshLambertMaterial({ map: teksturStud('#5bb543', 2) }));
+  alas.position.y = -0.1; alas.receiveShadow = true; sc.add(alas);
+  const cam = new THREE.PerspectiveCamera(30, 1, 0.1, 50); cam.position.set(0, 2.6, -9.6); cam.lookAt(0, 2.05, 0);
+  pv = { r, sc, cam, char: null, rot: 0.4, drag: null, putar: true };
+  cv.addEventListener('pointerdown', (e) => { pv.drag = e.clientX; pv.putar = false; try { cv.setPointerCapture(e.pointerId); } catch (er) {} });
+  cv.addEventListener('pointermove', (e) => { if (pv.drag === null) return; pv.rot += (e.clientX - pv.drag) * 0.012; pv.drag = e.clientX; });
+  for (const ev of ['pointerup', 'pointercancel']) cv.addEventListener(ev, () => { pv.drag = null; });
+}
+function ukurPreview() { const cv = $('previewCanvas'); const w = cv.clientWidth || 300, h = cv.clientHeight || 380; pv.r.setSize(w, h, false); pv.cam.aspect = w / h; pv.cam.updateProjectionMatrix(); }
+function perbaruiPreview() {
+  if (!pv) return;
+  if (pv.char) { pv.sc.remove(pv.char); pv.char.traverse((o) => o.geometry && o.geometry.dispose()); }
+  pv.char = buatKarakter('#ffffff', '', false, draft, pv.sc);
+  pv.char.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+}
+function renderPreview(dt) {
+  if (!pv || $('kustom').classList.contains('hidden')) return;
+  if (pv.putar) pv.rot += dt * 0.6;
+  pv.char.rotation.y = pv.rot;
+  const u = pv.char.userData; u.fase += dt * 3; u.lenganL.rotation.x = Math.sin(u.fase) * 0.15; u.kakiL.rotation.x = 0; u.kakiR.rotation.x = 0;
+  pv.r.render(pv.sc, pv.cam);
+}
+$('btnKustom').onclick = () => {
+  draft = { ...avSaya };
+  $('kustom').classList.remove('hidden'); siapkanPreview(); ukurPreview(); perbaruiPreview(); renderKustom(); pv.putar = true; sfx('klik');
+};
+$('btnAcak').onclick = () => { draft = acakAv(); perbaruiPreview(); renderKustom(); sfx('klik'); };
+const tutupKustom = () => $('kustom').classList.add('hidden');
+$('btnTutupKustom').onclick = tutupKustom; $('btnBatalKustom').onclick = tutupKustom;
+$('btnSimpanKustom').onclick = () => { avSaya = rapikanAv(draft); ls.set('avatar', JSON.stringify(avSaya)); tutupKustom(); sfx('benar'); $('error').textContent = ''; $('statusNet').dataset.x = '1'; };
+addEventListener('resize', () => { if (pv && !$('kustom').classList.contains('hidden')) ukurPreview(); });
+
 $('btnPanduan').onclick = () => { $('panduan').classList.remove('hidden'); sfx('klik'); };
 $('btnTutupPanduan').onclick = () => { $('panduan').classList.add('hidden'); sfx('klik'); };
 $('panduan').addEventListener('click', (e) => { if (e.target === $('panduan')) $('panduan').classList.add('hidden'); });
@@ -1692,7 +1969,7 @@ function tembak() {
 }
 
 /* ================= FISIKA ================= */
-const R = 0.45, TINGGI = 2.8, LAJU = 9, LARI = 15, GRAVITASI = 32, LOMPAT = 15;
+const R = 0.45, TINGGI = 2.8, LAJU = 9, LARI = 15, GRAVITASI = 32, LOMPAT = 12;
 function tabrak(x, y, z) {
   for (const b of KOTAK) if (x + R > b.minX && x - R < b.maxX && z + R > b.minZ && z - R < b.maxZ && y + TINGGI > b.minY && y < b.maxY) return b;
   return null;
@@ -1778,6 +2055,7 @@ function loop() {
   const now = performance.now();
   const dt = Math.min(0.05, (now - terakhir) / 1000); terakhir = now; waktu += dt;
   for (const f of mapAnim) f(dt, waktu);
+  renderPreview(dt);
   if (main && aku.group) {
     if (tombol.ArrowLeft) aku.yaw += 2.2 * dt;
     if (tombol.ArrowRight) aku.yaw -= 2.2 * dt;
