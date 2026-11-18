@@ -1273,14 +1273,16 @@ let mapPilihan = MAPS[ls.get('map', 'taman')] ? ls.get('map', 'taman') : 'taman'
 let topikPilihan = NAMA_TOPIK[ls.get('topik', 'campur')] ? ls.get('topik', 'campur') : 'campur';
 
 /* ================= JARINGAN (room Claude) ================= */
+let waktuMasuk = 0;
 let roomApi = null, grup = null, myPeer = null, topikTetap = false, mapTetap = false, menangTampil = false, kodeRoom = '';
 let net = { h: {}, tn: 0, tt: null, hu: 0, d: 0, k: null };
 let seen = {};
 
 // ====== Jaringan mabar via PeerJS (WebRTC, tanpa server sendiri) ======
 // Pemain pertama di sebuah kode room menjadi "host" (ID peer = blok-tembak-edu-<kode>).
-// Pemain lain tersambung ke host, host meneruskan posisi semua pemain ke semua orang.
-// Kalau host keluar, salah satu pemain otomatis menjadi host baru.
+// Pemain lain tersambung ke host, host meneruskan data semua pemain ke semua orang.
+// Setiap tab punya ID pemain tetap (uid), jadi kalau koneksi tersambung ulang
+// pemain yang sama tidak muncul dobel. Kalau host keluar, pemain lain otomatis jadi host baru.
 const PESAN_OFFLINE = 'Library mabar gagal dimuat. Cek koneksi internet lalu muat ulang halaman. Kamu tetap bisa latihan lawan bot.';
 const ICE = { iceServers: [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -1290,6 +1292,17 @@ const ICE = { iceServers: [
   { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
   { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
 ] };
+const UID_SAYA = (() => {
+  const baru = () => 'u' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  try { let u = sessionStorage.getItem('bt-uid'); if (!u) { u = baru(); sessionStorage.setItem('bt-uid', u); } return u; } catch (e) { return baru(); }
+})();
+// Timer di Web Worker supaya tidak diperlambat browser saat tab tidak aktif
+function buatTick(fn, ms) {
+  try {
+    const w = new Worker(URL.createObjectURL(new Blob([`setInterval(()=>postMessage(0),${ms})`], { type: 'text/javascript' })));
+    w.onmessage = fn; return () => w.terminate();
+  } catch (e) { const id = setInterval(fn, ms); return () => clearInterval(id); }
+}
 function buatRoomPeer() {
   if (typeof window.Peer !== 'function') return null;
   const opsiPeer = () => Object.assign({ config: ICE, debug: 0 }, window.__PEER_OPTS || {});
@@ -1297,9 +1310,9 @@ function buatRoomPeer() {
     join(name) {
       return new Promise((resolve, reject) => {
         const hostId = 'blok-tembak-edu-' + name;
-        let peer = null, mode = null, myId = null, hostConn = null, tutup = false, terhubung = false;
-        const conns = {}, connL = [], terakhirData = {};
-        let dataHostTerakhir = 0;
+        const myId = UID_SAYA;
+        let peer = null, mode = null, hostConn = null, tutup = false, terhubung = false, menyambung = false, dataHostTerakhir = 0;
+        const connUid = {}, terakhirData = {}, connL = [];
         let saya = {}, state = {};
         const setConn = (v) => { if (terhubung !== v) { terhubung = v; connL.forEach((f) => f(v)); } };
         const tunggu = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -1308,14 +1321,29 @@ function buatRoomPeer() {
           return new Promise((res, rej) => {
             const p = new window.Peer(hostId, opsiPeer());
             let siap = false;
-            p.on('open', (id) => { siap = true; peer = p; mode = 'host'; myId = id; hostConn = null; state = {}; setConn(true); res(); });
+            p.on('open', () => {
+              siap = true; peer = p; mode = 'host'; hostConn = null;
+              // Pertahankan data pemain lain sebentar supaya tidak berkedip saat pindah host
+              for (const k of Object.keys(state)) { if (k !== myId) terakhirData[k] = Date.now(); }
+              setConn(true); res();
+            });
             p.on('error', (e) => { if (!siap) { try { p.destroy(); } catch (er) {} rej(e); } });
             p.on('disconnected', () => { if (!tutup && peer === p) { try { p.reconnect(); } catch (er) {} } });
             p.on('connection', (c) => {
-              c.on('open', () => { conns[c.peer] = c; });
-              c.on('data', (d) => { terakhirData[c.peer] = Date.now(); if (d && d.t === 'p' && d.p && typeof d.p === 'object') state[c.peer] = d.p; });
-              const hapus = () => { try { c.close(); } catch (e) {} delete conns[c.peer]; delete state[c.peer]; delete terakhirData[c.peer]; };
-              c._hapus = hapus;
+              c.on('data', (d) => {
+                if (!d || d.t !== 'p' || typeof d.u !== 'string' || d.u.length > 40 || !d.p || typeof d.p !== 'object') return;
+                const u = d.u;
+                if (u === myId) { try { c.close(); } catch (e) {} return; }
+                // Pemain yang sama tersambung ulang: tutup koneksi lamanya
+                if (connUid[u] && connUid[u] !== c) { const lama = connUid[u]; lama._diganti = true; try { lama.close(); } catch (e) {} }
+                connUid[u] = c; c._uid = u;
+                state[u] = d.p; terakhirData[u] = Date.now();
+              });
+              const hapus = () => {
+                const u = c._uid;
+                if (!u || c._diganti || connUid[u] !== c) return;
+                delete connUid[u]; delete state[u]; delete terakhirData[u];
+              };
               c.on('close', hapus); c.on('error', hapus);
             });
           });
@@ -1327,53 +1355,65 @@ function buatRoomPeer() {
             const gagal = (e) => { if (selesai) return; selesai = true; try { p.destroy(); } catch (er) {} rej(e); };
             const to = setTimeout(() => gagal(new Error('timeout')), 12000);
             p.on('error', gagal);
-            p.on('open', (id) => {
+            p.on('open', () => {
               const c = p.connect(hostId, { serialization: 'json', reliable: true });
               c.on('open', () => {
                 if (selesai) return; selesai = true; clearTimeout(to);
-                peer = p; mode = 'tamu'; myId = id; hostConn = c; dataHostTerakhir = Date.now(); setConn(true); res();
+                peer = p; mode = 'tamu'; hostConn = c; dataHostTerakhir = Date.now(); setConn(true);
+                try { c.send({ t: 'p', u: myId, p: saya }); } catch (e) {}
+                res();
               });
               c.on('data', (d) => { dataHostTerakhir = Date.now(); if (d && d.t === 's' && d.s && typeof d.s === 'object') state = d.s; });
-              const putus = () => { if (!tutup && peer === p && mode === 'tamu') { setConn(false); state = {}; pindahHost(); } };
+              const putus = () => { if (!tutup && peer === p && mode === 'tamu') { setConn(false); pindahHost(); } };
               c._putus = putus;
               c.on('close', putus); c.on('error', putus);
             });
           });
         }
         async function hubungkan() {
+          if (menyambung) return;
+          menyambung = true;
           let errTerakhir = null;
-          for (let i = 0; i < 8 && !tutup; i++) {
-            try { await jadiHost(); return; } catch (e) { errTerakhir = e; if (e && e.type && e.type !== 'unavailable-id') { await tunggu(800); continue; } }
-            try { await jadiTamu(); return; } catch (e) { errTerakhir = e; }
-            await tunggu(800 + Math.random() * 900);
-          }
-          throw errTerakhir || new Error('gagal');
+          try {
+            for (let i = 0; i < 8 && !tutup; i++) {
+              try { await jadiHost(); return; } catch (e) { errTerakhir = e; if (e && e.type && e.type !== 'unavailable-id') { await tunggu(800); continue; } }
+              try { await jadiTamu(); return; } catch (e) { errTerakhir = e; }
+              await tunggu(700 + Math.random() * 900);
+            }
+            throw errTerakhir || new Error('gagal');
+          } finally { menyambung = false; }
         }
         async function pindahHost() {
-          const lama = peer; peer = null; mode = null;
+          const lama = peer; peer = null; mode = null; hostConn = null;
           try { lama && lama.destroy(); } catch (e) {}
-          await tunggu(400 + Math.random() * 1600);
+          await tunggu(300 + Math.random() * 1200);
           if (tutup) return;
           try { await hubungkan(); } catch (e) { setConn(false); }
         }
 
-        const iv = setInterval(() => {
-          if (tutup || !peer) return;
+        let jedaCoba = 0;
+        const hentikanTick = buatTick(() => {
+          if (tutup) return;
           const kini = Date.now();
+          // Tidak tersambung ke siapa pun: coba lagi terus tiap 3 detik
+          if (!peer) { if (!menyambung && kini > jedaCoba) { jedaCoba = kini + 3000; pindahHost(); } return; }
           if (mode === 'host') {
-            for (const [id, c] of Object.entries(conns)) if (kini - (terakhirData[id] || kini) > 5000 && c._hapus) c._hapus();
+            for (const [u, t] of Object.entries(terakhirData)) {
+              if (kini - t > 8000) { const c = connUid[u]; if (c) { c._diganti = true; try { c.close(); } catch (e) {} } delete connUid[u]; delete state[u]; delete terakhirData[u]; }
+            }
+            for (const u of Object.keys(state)) if (!(u in terakhirData)) delete state[u];
             const s = Object.assign({}, state); s[myId] = saya;
-            for (const c of Object.values(conns)) if (c.open) { try { c.send({ t: 's', s }); } catch (e) {} }
+            for (const c of Object.values(connUid)) if (c.open) { try { c.send({ t: 's', s }); } catch (e) {} }
           } else if (mode === 'tamu' && hostConn) {
-            if (kini - dataHostTerakhir > 4000) { if (hostConn._putus) hostConn._putus(); return; }
-            if (hostConn.open) { try { hostConn.send({ t: 'p', p: saya }); } catch (e) {} }
+            if (kini - dataHostTerakhir > 6000) { if (hostConn._putus) hostConn._putus(); return; }
+            if (hostConn.open) { try { hostConn.send({ t: 'p', u: myId, p: saya }); } catch (e) {} }
           }
         }, 50);
 
         const api = {
           name,
           peers() {
-            const arr = [{ peer: myId || 'aku', sameTab: true, isMe: true, presence: saya }];
+            const arr = [{ peer: myId, sameTab: true, isMe: true, presence: saya }];
             for (const [id, p] of Object.entries(state)) if (id !== myId) arr.push({ peer: id, sameTab: false, isMe: false, presence: p });
             return arr;
           },
@@ -1387,7 +1427,7 @@ function buatRoomPeer() {
           onPeers() { return () => {}; },
           emit: () => Promise.resolve(),
           on: () => () => {},
-          leave() { tutup = true; clearInterval(iv); try { peer && peer.destroy(); } catch (e) {} peer = null; return Promise.resolve(); },
+          leave() { tutup = true; hentikanTick(); try { peer && peer.destroy(); } catch (e) {} peer = null; return Promise.resolve(); },
         };
         hubungkan().then(() => resolve(api)).catch((e) => { api.leave(); reject(e); });
       });
@@ -1410,8 +1450,14 @@ async function masukOnline(kode, buat) {
   $('error').textContent = 'Menyambung ke room...';
   try { grup = await roomApi.join('bt-' + kode); }
   catch (e) { grup = null; $('error').textContent = 'Gagal masuk room. Coba lagi.'; return; }
-  await new Promise((r) => setTimeout(r, 1000));
-  const orang = grup.peers().filter((p) => !p.sameTab && p.presence && typeof p.presence.x === 'number');
+  // Tunggu data pemain lain masuk (maks 4 detik), berhenti lebih cepat kalau info host sudah ada
+  const ambilOrang = () => grup.peers().filter((p) => !p.sameTab && p.presence && typeof p.presence.x === 'number');
+  let orang = [];
+  for (let i = 0; i < (buat ? 5 : 20); i++) {
+    await new Promise((r) => setTimeout(r, 200));
+    orang = ambilOrang();
+    if (!buat && orang.some((p) => MAPS[p.presence.mp])) break;
+  }
   if (buat && orang.length > 0) { grup.leave(); grup = null; return masukOnline(acakKode(), true); }
   if (orang.length >= MAX_PEMAIN) { grup.leave(); grup = null; $('error').textContent = `Room penuh (maksimal ${MAX_PEMAIN} pemain).`; return; }
   const terpakai = orang.map((p) => p.presence.w);
@@ -1421,7 +1467,7 @@ async function masukOnline(kode, buat) {
   else if (host) { aku.topik = NAMA_TOPIK[host.presence.t] ? host.presence.t : 'campur'; topikTetap = true; mapTetap = true; bangunMap(host.presence.mp); }
   else { aku.topik = 'campur'; topikTetap = false; mapTetap = false; }
   aku.ronde = Math.max(0, ...orang.map((p) => p.presence.r | 0));
-  isHost = buat; mode = 'online'; kodeRoom = kode.toUpperCase();
+  isHost = buat; mode = 'online'; kodeRoom = kode.toUpperCase(); waktuMasuk = Date.now();
   mulaiGame();
   grup.onConnection((c) => { if (!c && main) tampilPetunjuk('Koneksi tersendat...', 2000); });
   if (buat) tampilPetunjuk(`Room dibuat! Bagikan kode ${kodeRoom} ke temanmu`, 6000);
@@ -1501,6 +1547,7 @@ function prosesPeers() {
     else if (o.ronde === aku.ronde && o.skor >= TARGET_KILL) tampilMenang(o.nama, false);
   }
   for (const id of Object.keys(lain)) if (!lain[id].bot && !ada.has(id)) { tambahFeed(`🚪 ${lain[id].nama} keluar`); hapusPemain(id); }
+  if (!mapTetap && Date.now() - waktuMasuk > 6000) { mapTetap = true; topikTetap = true; updateInfoRoom(); }
   const tunggu = $('tunggu');
   if (ada.size === 0) {
     tunggu.textContent = isHost || mapTetap ? `⏳ Menunggu teman bergabung... bagikan kode ${kodeRoom}` : `⏳ Belum ada pemain di room ${kodeRoom}. Cek kodenya, atau tunggu host masuk.`;
@@ -2000,7 +2047,7 @@ function tembak() {
 }
 
 /* ================= FISIKA ================= */
-const R = 0.45, TINGGI = 2.8, LAJU = 9, LARI = 15, GRAVITASI = 32, LOMPAT = 15;
+const R = 0.45, TINGGI = 2.8, LAJU = 9, LARI = 15, GRAVITASI = 32, LOMPAT = 12;
 function tabrak(x, y, z) {
   for (const b of KOTAK) if (x + R > b.minX && x - R < b.maxX && z + R > b.minZ && z - R < b.maxZ && y + TINGGI > b.minY && y < b.maxY) return b;
   return null;
